@@ -1,5 +1,5 @@
 #import <Cocoa/Cocoa.h>
-#import <objc/runtime.h>
+#import "../common/addMethod.h"
 
 class App {
     
@@ -19,13 +19,12 @@ class App {
             if(objc_getClass("View")==nil) { objc_registerClassPair(objc_allocateClassPair(objc_getClass("NSView"),"View",0)); }
             Class View = objc_getClass("View");
                         
-            class_addMethod(View,NSSelectorFromString(@"_drawRect:"),method_getImplementation(class_getInstanceMethod(View,NSSelectorFromString(@"drawRect:"))),"v@:@");
-            class_replaceMethod(View,NSSelectorFromString(@"drawRect:"),imp_implementationWithBlock(^(id me,NSRect dirtyRect) {
-                    NSLog(@"drawRect:");                            
-                    [[NSColor blackColor] set];
-                    NSRectFill(dirtyRect);
-            }),"v@:@");
-            
+            addMethod(View,@"drawRect:",^(id me,NSRect dirtyRect) {
+                NSLog(@"drawRect:");                            
+                [[NSColor blackColor] set];
+                NSRectFill(dirtyRect);
+            },"v@:@");
+                
             this->view = [[View alloc] initWithFrame:rect];
             
             [[this->win contentView] addSubview:this->view];

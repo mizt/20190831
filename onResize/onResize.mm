@@ -9,11 +9,8 @@ static void onResize(CGDirectDisplayID displayID, CGDisplayChangeSummaryFlags fl
 }
     
 int main(int argc, char *argv[]) {
-
     @autoreleasepool {
-        
         CGDisplayRegisterReconfigurationCallback(onResize,nullptr);
-        [[NSApplication sharedApplication] run];       
-        
+        [[NSApplication sharedApplication] run];               
     }
 }

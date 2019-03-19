@@ -1,6 +1,6 @@
 #import <Cocoa/Cocoa.h>
 #import <Webkit/Webkit.h>
-#import <objc/runtime.h>
+#import "../common/addMethod.h"
 
 class App {
     
@@ -20,16 +20,15 @@ class App {
            
             if(objc_getClass("Web")==nil) { objc_registerClassPair(objc_allocateClassPair(objc_getClass("WKWebView"),"Web",0)); }
             Class Web = objc_getClass("Web");
-            class_addMethod(Web,NSSelectorFromString(@"_webView:didFinishNavigation:"),method_getImplementation(class_getInstanceMethod(Web,NSSelectorFromString(@"webView:didFinishNavigation:"))),"v@:@@");
-            class_replaceMethod(Web,NSSelectorFromString(@"webView:didFinishNavigation:"),imp_implementationWithBlock(^(id me,WKWebView *webView,WKNavigation *navigation) {
-
-                    if(this->isInit==false) {
-                        NSLog(@"webView:didFinishNavigation:");
-                        [this->win makeKeyAndOrderFront:nil];
-                        this->isInit = true;
-                    }
-            }),"v@:@@");
-                       
+            
+            addMethod(Web,@"webView:didFinishNavigation:",^(id me,WKWebView *webView,WKNavigation *navigation) {
+                if(this->isInit==false) {
+                    NSLog(@"webView:didFinishNavigation:");
+                    [this->win makeKeyAndOrderFront:nil];
+                    this->isInit = true;
+                }
+            },"v@:@@");
+                        
             this->view = [[Web alloc] initWithFrame:rect];
             [this->view setNavigationDelegate:this->view];
             [this->view loadHTMLString:[NSString stringWithUTF8String:R"(<!DOCTYPE html>

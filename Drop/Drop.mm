@@ -1,5 +1,5 @@
 #import <Cocoa/Cocoa.h>
-#import <objc/runtime.h>
+#import "../common/addMethod.h"
 
 class App {
     
@@ -9,19 +9,6 @@ class App {
         id view;
         
         bool isDrop = true;
-        
-        void addMethod(Class cls,NSString *method,id block,const char *type,bool isClassMethod=false) {
-                
-            SEL sel = NSSelectorFromString(method);
-            int ret = ([cls respondsToSelector:sel])?1:(([[cls new] respondsToSelector:sel])?2:0);                
-            if(ret) {
-                class_addMethod(cls,(NSSelectorFromString([NSString stringWithFormat:@"_%@",(method)])),method_getImplementation(class_getInstanceMethod(cls,sel)),type);
-                class_replaceMethod((ret==1)?object_getClass((id)cls):cls,sel,imp_implementationWithBlock(block),type);
-            }
-            else {
-                class_addMethod((isClassMethod)?object_getClass((id)cls):cls,sel,imp_implementationWithBlock(block),type);
-            }
-        }
         
     public:
         
@@ -34,27 +21,24 @@ class App {
             if(objc_getClass("View")==nil) { objc_registerClassPair(objc_allocateClassPair(objc_getClass("NSView"),"View",0)); }
             Class View = objc_getClass("View");
                         
-            this->addMethod(View,@"drawRect:",^(id me,NSRect dirtyRect) {
+            addMethod(View,@"drawRect:",^(id me,NSRect dirtyRect) {
                 NSLog(@"drawRect:");                            
                 [[NSColor blueColor] set];
                 NSRectFill(dirtyRect);
             },"v@:@");
             
-            
-            this->addMethod(View,@"draggingEntered:",^NSDragOperation(id me,id <NSDraggingInfo> sender) {
-                            
+            addMethod(View,@"draggingEntered:",^NSDragOperation(id me,id <NSDraggingInfo> sender) {
                 NSLog(@"draggingEntered");
                 if(!this->isDrop) return NSDragOperationNone;
                 return NSDragOperationLink;
-                            
             },"@@:@");
 
-            this->addMethod(View,@"performDragOperation:",^BOOL(id me,id <NSDraggingInfo> sender) {
+            addMethod(View,@"performDragOperation:",^BOOL(id me,id <NSDraggingInfo> sender) {
                 NSLog(@"performDragOperation");
                 return this->isDrop?YES:NO;
             },"@@:@");
             
-            this->addMethod(View,@"concludeDragOperation:",^(id me,id <NSDraggingInfo> sender) {
+            addMethod(View,@"concludeDragOperation:",^(id me,id <NSDraggingInfo> sender) {
                     
                 NSLog(@"concludeDragOperation");
                 this->isDrop = false; 
