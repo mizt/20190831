@@ -38,8 +38,8 @@ int main(int argc, char *argv[]) {
                 dst[i*w+j] = argb|((*tmp++)&0xFF)<<16;
             }
         }
-            
-        stb_image::stbi_write_png("dst.png",h,w,4,(void const*)dst,w<<2);
+        
+        stb_image::stbi_write_png([[NSString stringWithFormat:@"%@/dst.png",[[NSBundle mainBundle] bundlePath]] UTF8String],w,h,4,(void const*)dst,w<<2);
         
         CFRelease(data);
         CGImageRelease(imgRef);
