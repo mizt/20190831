@@ -2,14 +2,14 @@
 
 int main(int argc, char *argv[]) {
     @autoreleasepool {
-        NSError *error = nil;
+        NSError *err = nil;
         NSString *path  = [NSString stringWithFormat:@"%@/color.json",[[NSBundle mainBundle] bundlePath]];
-        NSString *json= [[NSString alloc] initWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
-        if(error==nil) {
+        NSString *json= [[NSString alloc] initWithContentsOfFile:path encoding:NSUTF8StringEncoding error:&err];
+        if(err==nil) {
             NSData *jsonData = [json dataUsingEncoding:NSUnicodeStringEncoding];
-            error = nil;
-            NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:jsonData options:NSJSONReadingAllowFragments error:&error];
-            if(error==nil) {
+            err = nil;
+            NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:jsonData options:NSJSONReadingAllowFragments error:&err];
+            if(err==nil) {
                 int ch = 3;
                 if([[dict[@"background"] className] compare:@"__NSArrayI"]==NSOrderedSame) {
                     if(dict[@"background"]&&[dict[@"background"] count]==ch) {                    
