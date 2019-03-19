@@ -1,14 +1,12 @@
 #import <AudioUnit/AudioUnit.h>
 #import <AVFoundation/AVFoundation.h>
 
-#define TWO_PI (3.14159265358979323846*2.0)
+typedef OSStatus (onAudioOut)(void *inRef, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp* inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData);
 
-class AudioOut {
+class AudioOutBase {
     
     protected:
-    
-        double sampleRate = 44100.0;
-
+        
         AudioUnit au;
         AudioComponentDescription acd;
         AudioComponent ac;
@@ -17,32 +15,16 @@ class AudioOut {
         AudioDeviceID adid;
         AudioObjectPropertyAddress pa;
         
-        double phase = 0;
-    
-    
-        static OSStatus renderer(void *inRef, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp* inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData) {
+        double sampleRate = 44100.0;
             
-            float *L = (float *)ioData->mBuffers[0].mData;
-            float *R = (float *)ioData->mBuffers[0].mData;    
-            
-            AudioOut *me = (AudioOut *)inRef;        
-            
-            for(int k=0; k<inNumberFrames; k++) {
-                
-                me->phase+=440.0/me->sampleRate;
-                if(me->phase>1) me->phase-=1;
-                else if(me->phase<0) me->phase+=1;
-            
-                *L++ = *R++ = sin((me->phase)*TWO_PI);
-            }
-            
-            return noErr;
-        };
-    
-    
     public:
+    
+        AudioOutBase() {
+            
         
-        AudioOut() {
+        }
+        
+        void setup(void *context,onAudioOut *callback) {
             
             this->pa.mSelector = kAudioHardwarePropertyDefaultOutputDevice;
             this->pa.mScope = kAudioObjectPropertyScopeGlobal;
@@ -71,8 +53,8 @@ class AudioOut {
             AudioComponentInstanceNew(this->ac,&this->au);
             AudioUnitInitialize(this->au);
             
-            this->cbs.inputProc = renderer;
-            this->cbs.inputProcRefCon = (void *)this;
+            this->cbs.inputProc = callback;
+            this->cbs.inputProcRefCon = (void *)context;
             
             AudioUnitSetProperty(au,kAudioUnitProperty_SetRenderCallback,kAudioUnitScope_Input,0,&this->cbs,sizeof(AURenderCallbackStruct));
             
@@ -90,11 +72,13 @@ class AudioOut {
             AudioOutputUnitStart(this->au);
         }
         
-        ~AudioOut() {
-            AudioOutputUnitStop(this->au);
-            AudioUnitUninitialize(this->au);
-            AudioComponentInstanceDispose(this->au);
-            this->au = NULL;
+        ~AudioOutBase() {
+            if(this->au) {
+                AudioOutputUnitStop(this->au);
+                AudioUnitUninitialize(this->au);
+                AudioComponentInstanceDispose(this->au);
+                this->au = NULL;
+            }
         }
     
 };
