@@ -16,7 +16,7 @@ int isRunningApp(NSString *AppName) {
         return -1;
     }
 
-    int count = size/sizeof(struct kinfo_proc);
+    unsigned long count = size/sizeof(struct kinfo_proc);
     for(int i=0; i<count; i++) {
         
         pid_t pid = process[i].kp_proc.p_pid;
