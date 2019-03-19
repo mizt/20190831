@@ -2,8 +2,6 @@
 
 class App {
     
-    private:
-        
     public:
         
         App() {
