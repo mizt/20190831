@@ -3,6 +3,8 @@
 #import <vector>
 #import <string>
 
+#define USE_SIGINT
+
 
 class Keyboard {
 	
@@ -17,9 +19,9 @@ class Keyboard {
 	
 		virtual void onKeyDown(std::string key)  = 0;
 		virtual void onKeyUp(std::string key)  = 0;
-	
+#ifdef USE_SIGINT	
 		virtual void onSIGINT() = 0;
-		
+#endif
 		void append(CFMutableArrayRef arr, uint32_t page, uint32_t use) {
 			CFMutableDictionaryRef result = CFDictionaryCreateMutable(kCFAllocatorDefault,0,&kCFTypeDictionaryKeyCallBacks,&kCFTypeDictionaryValueCallBacks);
 			if (!result) return;
@@ -32,8 +34,23 @@ class Keyboard {
 			CFArrayAppendValue(arr,result);
 			CFRelease(result);
 		}
+		
+		void input(bool isKeyDown,unsigned int usage) {
+			if(isKeyDown) {
+				
+				if(Keyboard::map.count(usage)!=0) {
+					this->onKeyDown(std::get<0>(Keyboard::map.at(usage)));
+				}
+			}
+			else {
+				
+				if(Keyboard::map.count(usage)!=0) {
+					this->onKeyUp(std::get<0>(Keyboard::map.at(usage)));
+				}
+			}
+		}
 	
-		static void input(void *me, IOReturn result, void* sender,IOHIDValueRef value) {
+		static void input(void *me, IOReturn result, void *sender,IOHIDValueRef value) {
 			
 			IOHIDElementRef element = IOHIDValueGetElement(value);
 			unsigned int type = (unsigned int)IOHIDElementGetType(element);
@@ -42,35 +59,31 @@ class Keyboard {
 						
 			if(type==2&&page==7&&(usage!=1&&usage!=-1)) {
 				
+				bool isKeyDown = ((unsigned int)IOHIDValueGetIntegerValue(value)==1)?true:false;
+				
 				if(usage==225) {
-					((Keyboard *)me)->LEFT_SHIFT = ((unsigned int)IOHIDValueGetIntegerValue(value)==1)?true:false;
+					((Keyboard *)me)->LEFT_SHIFT = isKeyDown;
 				}
 				else if(usage==229) {
-					((Keyboard *)me)->RIGHT_SHIFT = ((unsigned int)IOHIDValueGetIntegerValue(value)==1)?true:false;
+					((Keyboard *)me)->RIGHT_SHIFT = isKeyDown;
 				}
 				else if(usage==224) {
-					((Keyboard *)me)->CONTROL = ((unsigned int)IOHIDValueGetIntegerValue(value)==1)?true:false;
+					((Keyboard *)me)->CONTROL = isKeyDown;
 				}
 				else if(usage) {
 					
 					if(((Keyboard *)me)->CONTROL==true&&usage==6) {
-						if((unsigned int)IOHIDValueGetIntegerValue(value)==1) {
+#ifdef USE_SIGINT	
+						if(isKeyDown) {
 							((Keyboard *)me)->onSIGINT();
 						}
+#else
+						((Keyboard *)me)->input(isKeyDown,usage);
+#endif
+						
 					}
 					else {
-						if((unsigned int)IOHIDValueGetIntegerValue(value)==1) {
-							
-							if(Keyboard::map.count(usage)!=0) {
-								((Keyboard *)me)->onKeyDown(std::get<0>(Keyboard::map.at(usage)));
-							}
-						}
-						else {
-							
-							if(Keyboard::map.count(usage)!=0) {
-								((Keyboard *)me)->onKeyUp(std::get<0>(Keyboard::map.at(usage)));
-							}
-						}
+						((Keyboard *)me)->input(isKeyDown,usage);
 					}
 				}
 			}
@@ -114,9 +127,9 @@ class Keyboard {
 		static const std::map<int,std::tuple<std::string,std::string>> map;
 		
 		Keyboard() {
-			
+#ifdef USE_SIGINT			
 			signal(SIGINT,SIG_IGN);
-		
+#endif
 			this->manager = IOHIDManagerCreate(kCFAllocatorDefault,kIOHIDOptionsTypeNone);
 			if(this->manager) {
 				CFMutableArrayRef arr = CFArrayCreateMutable(kCFAllocatorDefault,0,&kCFTypeArrayCallBacks);

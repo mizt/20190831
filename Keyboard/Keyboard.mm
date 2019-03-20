@@ -12,11 +12,13 @@ class App : public Keyboard {
         void onKeyUp(std::string key) {
             NSLog(@"onKeyUp %s",key.c_str());
         }
-    
+ 
+#ifdef USE_SIGINT   
         void onSIGINT() {
             [NSApp terminate:nil];
         }
-        
+#endif
+
     public:
         
         App() {
