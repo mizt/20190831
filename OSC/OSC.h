@@ -16,15 +16,13 @@ namespace OSC {
           
         public:
         
-            Receiver(int port) {
-                  
+            Receiver(int port) {                  
                 fcntl(this->fd,F_SETFL,O_NONBLOCK); // set the socket to non-blocking
                 struct sockaddr_in sin;
                 sin.sin_family = AF_INET;
                 sin.sin_port = htons(port);
                 sin.sin_addr.s_addr = INADDR_ANY;
                 bind(this->fd,(struct sockaddr *)&sin,sizeof(struct sockaddr_in));
-                
             }		
         
             void update() {
@@ -32,24 +30,24 @@ namespace OSC {
                 fd_set readSet;
                 FD_ZERO(&readSet);
                 FD_SET(fd, &readSet);
-                struct timeval timeout = {1, 0}; // select times out after 1 second
-                if(select(fd+1, &readSet, NULL, NULL, &timeout) > 0) {
+                struct timeval timeout = {0,0};
+                if(select(fd+1,&readSet,NULL,NULL,&timeout)>0) {
                     struct sockaddr sa; // can be safely cast to sockaddr_in
                     socklen_t sa_len = sizeof(struct sockaddr_in);
                     int len = 0;
-                    while((len = (int) recvfrom(fd, recvbuf, sizeof(recvbuf), 0, &sa, &sa_len)) > 0) {
+                    while((len = (int) recvfrom(fd,recvbuf,sizeof(recvbuf),0,&sa,&sa_len))>0) {
                         if(tosc_isBundle(recvbuf)) {
                             tosc_bundle bundle;
-                            tosc_parseBundle(&bundle, recvbuf, len);
+                            tosc_parseBundle(&bundle,recvbuf,len);
                             const uint64_t timetag = tosc_getTimetag(&bundle);
                             tosc_message osc;
-                            while (tosc_getNextMessage(&bundle, &osc)) {
+                            while (tosc_getNextMessage(&bundle,&osc)) {
                                 this->onOSC(&osc);
                             }
                         }
                         else {
                             tosc_message osc;
-                            tosc_parseMessage(&osc, recvbuf, len);
+                            tosc_parseMessage(&osc, recvbuf,len);
                             this->onOSC(&osc);
                         }
                     }
