@@ -37,7 +37,6 @@ class Keyboard {
 		
 		void input(bool isKeyDown,unsigned int usage) {
 			if(isKeyDown) {
-				
 				if(Keyboard::map.count(usage)!=0) {
 					this->onKeyDown(std::get<0>(Keyboard::map.at(usage)));
 				}
@@ -74,9 +73,7 @@ class Keyboard {
 					
 					if(((Keyboard *)me)->CONTROL==true&&usage==6) {
 #ifdef USE_SIGINT	
-						if(isKeyDown) {
-							((Keyboard *)me)->onSIGINT();
-						}
+						if(isKeyDown) ((Keyboard *)me)->onSIGINT();
 #else
 						((Keyboard *)me)->input(isKeyDown,usage);
 #endif

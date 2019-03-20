@@ -31,11 +31,11 @@ int main(int argc, char *argv[]) {
             unsigned int *tmp = src+i*(rows);
             for(int j=0; j<w; j++) {
                 
-                unsigned int argb = 0xFF000000;
-                argb |= (*tmp>>16)&0xFF;
-                argb |= *tmp&0xFF00;
+                unsigned int abgr = 0xFF000000;
+                abgr |= (*tmp>>16)&0xFF;
+                abgr |= *tmp&0xFF00;
                 
-                dst[i*w+j] = argb|((*tmp++)&0xFF)<<16;
+                dst[i*w+j] = abgr|((*tmp++)&0xFF)<<16;
             }
         }
         
