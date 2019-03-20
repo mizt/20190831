@@ -21,9 +21,9 @@ int main(int argc, char *argv[]) {
                         count++;
                         char *dir = entry->fts_path;
                         NSString *path = [NSString stringWithCString:dir encoding:NSUTF8StringEncoding];
-                        NSFileHandle *src = [NSFileHandle fileHandleForReadingAtPath:path];
-                        if(src) {
-                            if(!contains(path,@".DS_Store")) {
+                        if(!contains(path,@".DS_Store")) {
+                            NSFileHandle *src = [NSFileHandle fileHandleForReadingAtPath:path];
+                            if(src) {
                                 NSLog(@"%@",path);
                             }
                         }
