@@ -32,7 +32,7 @@ class App {
             CGPathAddArc(path,NULL,64,64,60,0,M_PI*2,YES);            
             this->circle = [CAShapeLayer layer];
             this->circle.fillColor = [NSColor clearColor].CGColor;
-            this->circle.strokeColor = [NSColor redColor].CGColor;
+            this->circle.strokeColor = [NSColor whiteColor].CGColor;
             this->circle.lineWidth = 8;
             this->circle.path = path;
             this->gradient.mask = this->circle;
