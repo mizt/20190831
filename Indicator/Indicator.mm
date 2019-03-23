@@ -27,9 +27,9 @@ class App {
                 (id)[NSColor colorWithDeviceRed:1.0 green:1.0 blue:1.0 alpha:1.0].CGColor
             ];
             this->gradient.type = kCAGradientLayerConic;
-            [this->view  setWantsLayer:YES]; 
+            [this->view setWantsLayer:YES]; 
             CGMutablePathRef path = CGPathCreateMutable();
-            CGPathAddArc(path, NULL,64,64,60,0,M_PI*2, YES);            
+            CGPathAddArc(path,NULL,64,64,60,0,M_PI*2,YES);            
             this->circle = [CAShapeLayer layer];
             this->circle.fillColor = [NSColor clearColor].CGColor;
             this->circle.strokeColor = [NSColor redColor].CGColor;
