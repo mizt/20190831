@@ -27,8 +27,6 @@ class App {
             dispatch_source_set_timer(this->timer,dispatch_time(0,0),(1.0/60)*1000000000,0);
             dispatch_source_set_event_handler(this->timer,^{
                 
-                
-                //[this->view mode:(cnt++)&1];
                 [this->view update:
                 ^(id<MTLCommandBuffer> commandBuffer){
                     [this->view cleanup];

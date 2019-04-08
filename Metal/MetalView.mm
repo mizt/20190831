@@ -199,16 +199,12 @@ namespace Plane {
             [_argumentEncoder[k] setBuffer:_mouseBuffer offset:0 atIndex:2];
             [_argumentEncoder[k] setTexture:_texture atIndex:3];
         }
-        
-        
-        
     }
     return self;
 }
 
 -(id<MTLCommandBuffer>)setupCommandBuffer:(int)mode {
-        
-	
+    
     if(!_metalDrawable) {
         _metalDrawable = [_metalLayer nextDrawable];
     }
@@ -222,8 +218,6 @@ namespace Plane {
             _renderPassDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
         }
     }
-    
-    
     
     if(_metalDrawable&&_renderPassDescriptor) {
         
@@ -282,9 +276,7 @@ namespace Plane {
     if(mode>=_library.size()) mode = _library.size()-1;
     
     if(_renderPipelineState[mode]) {
-        
-        NSLog(@"mode %d",mode);
-        
+                
         id<MTLCommandBuffer> commandBuffer = [self setupCommandBuffer:mode];
         if(commandBuffer) {
             [commandBuffer addCompletedHandler:onComplete];
