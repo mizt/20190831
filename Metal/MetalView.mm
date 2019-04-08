@@ -1,4 +1,5 @@
 #import "MetalView.h"
+#import <vector>
 
 namespace Plane {
     
@@ -28,8 +29,7 @@ namespace Plane {
     
     id<MTLDevice> _device;
     id<MTLCommandQueue> _commandQueue;
-    id<MTLLibrary> _library;
-    id<MTLRenderPipelineState> _renderPipelineState;
+    
     id<CAMetalDrawable> _metalDrawable;
     
     id<MTLTexture> _drawabletexture;    
@@ -43,11 +43,13 @@ namespace Plane {
     id<MTLBuffer> _vertexBuffer;
     id<MTLBuffer> _texcoordBuffer;
     
-    id<MTLArgumentEncoder> _argumentEncoder;
-    id<MTLBuffer> _argumentEncoderBuffer;
-    
-    MTLRenderPipelineDescriptor *_renderPipelineDescriptor;
-    
+   
+    std::vector<id<MTLLibrary>> _library;
+    std::vector<id<MTLRenderPipelineState>> _renderPipelineState;
+    std::vector<MTLRenderPipelineDescriptor *> _renderPipelineDescriptor;
+    std::vector<id<MTLArgumentEncoder>> _argumentEncoder;
+    std::vector<id<MTLBuffer>> _argumentEncoderBuffer;
+        
     CGRect _frame;
     double _starttime;
     
@@ -64,44 +66,55 @@ namespace Plane {
 -(void)cleanup { _metalDrawable = nil; }
 -(bool)setupShader {
     
-    id<MTLFunction> vertexFunction  = [_library newFunctionWithName:@"vertexShader"];
-    if(!vertexFunction) return nil;
-    
-    id<MTLFunction> fragmentFunction = [_library newFunctionWithName:@"fragmentShader"];
-    if(!fragmentFunction) return nil;
-    
-    if(_renderPipelineDescriptor==nil) {
-        _renderPipelineDescriptor = [MTLRenderPipelineDescriptor new];
-        if(!_renderPipelineDescriptor) return nil;
+    for(int k=0; k<_library.size(); k++) {
         
-        _argumentEncoder = [fragmentFunction newArgumentEncoderWithBufferIndex:0];
-     }
+        id<MTLFunction> vertexFunction  = [_library[k] newFunctionWithName:@"vertexShader"];
+        if(!vertexFunction) return nil;
+        
+        id<MTLFunction> fragmentFunction = [_library[k] newFunctionWithName:@"fragmentShader"];
+        if(!fragmentFunction) return nil;
+        
+        /*
+        if(_renderPipelineDescriptor==nil) {
+            _renderPipelineDescriptor = [MTLRenderPipelineDescriptor new];
+            if(!_renderPipelineDescriptor) return nil;
+            
+            _argumentEncoder = [fragmentFunction newArgumentEncoderWithBufferIndex:0];
+         }
+        */
+        
+        _renderPipelineDescriptor.push_back([MTLRenderPipelineDescriptor new]);
+        if(!_renderPipelineDescriptor[k]) return nil;
+        _argumentEncoder.push_back([fragmentFunction newArgumentEncoderWithBufferIndex:0]);
+
+        
+        _renderPipelineDescriptor[k].depthAttachmentPixelFormat      = MTLPixelFormatInvalid;
+        _renderPipelineDescriptor[k].stencilAttachmentPixelFormat    = MTLPixelFormatInvalid;
+        _renderPipelineDescriptor[k].colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
+        
+        MTLRenderPipelineColorAttachmentDescriptor *colorAttachment = _renderPipelineDescriptor[k].colorAttachments[0];
+        colorAttachment.blendingEnabled = YES;
+        colorAttachment.rgbBlendOperation = MTLBlendOperationAdd;
+        colorAttachment.alphaBlendOperation = MTLBlendOperationAdd;
+        colorAttachment.sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+        colorAttachment.sourceAlphaBlendFactor = MTLBlendFactorOne;
+        colorAttachment.destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+        colorAttachment.destinationAlphaBlendFactor = MTLBlendFactorOne;
+        
+        _renderPipelineDescriptor[k].sampleCount = 1;
+       
+        _renderPipelineDescriptor[k].vertexFunction = vertexFunction;
+        _renderPipelineDescriptor[k].fragmentFunction = fragmentFunction;
+        
+        NSError *error = nil;
+        _renderPipelineState.push_back([_device newRenderPipelineStateWithDescriptor:_renderPipelineDescriptor[k] error:&error]);
+        if(error||!_renderPipelineState[k]) return true;
+    }
     
-    _renderPipelineDescriptor.depthAttachmentPixelFormat      = MTLPixelFormatInvalid;
-    _renderPipelineDescriptor.stencilAttachmentPixelFormat    = MTLPixelFormatInvalid;
-    _renderPipelineDescriptor.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
-    
-    MTLRenderPipelineColorAttachmentDescriptor *colorAttachment = _renderPipelineDescriptor.colorAttachments[0];
-    colorAttachment.blendingEnabled = YES;
-    colorAttachment.rgbBlendOperation = MTLBlendOperationAdd;
-    colorAttachment.alphaBlendOperation = MTLBlendOperationAdd;
-    colorAttachment.sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
-    colorAttachment.sourceAlphaBlendFactor = MTLBlendFactorOne;
-    colorAttachment.destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
-    colorAttachment.destinationAlphaBlendFactor = MTLBlendFactorOne;
-    
-    _renderPipelineDescriptor.sampleCount = 1;
-   
-    _renderPipelineDescriptor.vertexFunction = vertexFunction;
-    _renderPipelineDescriptor.fragmentFunction = fragmentFunction;
-    
-    NSError *error = nil;
-    _renderPipelineState = [_device newRenderPipelineStateWithDescriptor:_renderPipelineDescriptor error:&error];
-    if(error||!_renderPipelineState) return true;
     
     return false;
 }
-
+/*
 -(bool)reloadShader:(dispatch_data_t)data {
     
     NSError *error = nil;
@@ -111,7 +124,7 @@ namespace Plane {
     
     return false;
 }
-
+*/
 -(id)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if(self) {
@@ -136,12 +149,17 @@ namespace Plane {
         _commandQueue = [_device newCommandQueue];
         if(!_commandQueue) return nil;
         
-        NSString *path = [NSString stringWithFormat:@"%@/blue.metallib",[[NSBundle mainBundle] bundlePath]];
-        if(!path) return nil;
         
         NSError *error = nil;
-        _library = [_device newLibraryWithFile:path error:&error];
-        if(error||!_library) return nil;
+        _library.push_back([_device newLibraryWithFile:[NSString stringWithFormat:@"%@/blue.metallib",[[NSBundle mainBundle] bundlePath]] error:&error]);
+        if(error||!_library[_library.size()-1]) return nil;
+        
+        _library.push_back([_device newLibraryWithFile:[NSString stringWithFormat:@"%@/cyan.metallib",[[NSBundle mainBundle] bundlePath]] error:&error]);
+        if(error||!_library[_library.size()-1]) return nil;
+        
+        
+        
+        
         if([self setupShader]) return nil;
       
         MTLTextureDescriptor *texDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:frame.size.width height:frame.size.height mipmapped:NO];
@@ -169,19 +187,24 @@ namespace Plane {
         _texcoordBuffer = [_device newBufferWithBytes:Plane::textureCoordinateData length:6*sizeof(float)*2 options:MTLResourceOptionCPUCacheModeDefault];
         if(!_texcoordBuffer) return nil;
         
-        _argumentEncoderBuffer = [_device newBufferWithLength:sizeof(float)*[_argumentEncoder encodedLength] options:MTLResourceOptionCPUCacheModeDefault];
-        [_argumentEncoder setArgumentBuffer:_argumentEncoderBuffer offset:0];
+        for(int k=0; k<_library.size(); k++) {
+            _argumentEncoderBuffer.push_back([_device newBufferWithLength:sizeof(float)*[_argumentEncoder[k] encodedLength] options:MTLResourceOptionCPUCacheModeDefault]);
 
-        [_argumentEncoder setBuffer:_timeBuffer offset:0 atIndex:0];
-        [_argumentEncoder setBuffer:_resolutionBuffer offset:0 atIndex:1];
-        [_argumentEncoder setBuffer:_mouseBuffer offset:0 atIndex:2];
-        [_argumentEncoder setTexture:_texture atIndex:3];
+            [_argumentEncoder[k] setArgumentBuffer:_argumentEncoderBuffer[k] offset:0];
+            [_argumentEncoder[k] setBuffer:_timeBuffer offset:0 atIndex:0];
+            [_argumentEncoder[k] setBuffer:_resolutionBuffer offset:0 atIndex:1];
+            [_argumentEncoder[k] setBuffer:_mouseBuffer offset:0 atIndex:2];
+            [_argumentEncoder[k] setTexture:_texture atIndex:3];
+        }
+        
+        
         
     }
     return self;
 }
 
--(id<MTLCommandBuffer>)setupCommandBuffer {
+-(id<MTLCommandBuffer>)setupCommandBuffer:(int)type {
+        
 	
     if(!_metalDrawable) {
         _metalDrawable = [_metalLayer nextDrawable];
@@ -196,6 +219,8 @@ namespace Plane {
             _renderPassDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
         }
     }
+    
+    
     
     if(_metalDrawable&&_renderPassDescriptor) {
         
@@ -224,7 +249,7 @@ namespace Plane {
         id<MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:_renderPassDescriptor];
         
         [renderEncoder setFrontFacingWinding:MTLWindingCounterClockwise];
-        [renderEncoder setRenderPipelineState:_renderPipelineState];
+        [renderEncoder setRenderPipelineState:_renderPipelineState[type]];
         
         [renderEncoder setVertexBuffer:_vertexBuffer offset:0 atIndex:0];
         [renderEncoder setVertexBuffer:_texcoordBuffer offset:0 atIndex:1];
@@ -234,7 +259,7 @@ namespace Plane {
         [renderEncoder useResource:_mouseBuffer usage:MTLResourceUsageRead];
         [renderEncoder useResource:_texture usage:MTLResourceUsageSample];
 
-        [renderEncoder setFragmentBuffer:_argumentEncoderBuffer offset:0 atIndex:0];
+        [renderEncoder setFragmentBuffer:_argumentEncoderBuffer[type] offset:0 atIndex:0];
 
         [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6 instanceCount:1];
         [renderEncoder endEncoding];
@@ -250,9 +275,13 @@ namespace Plane {
 
 -(void)update:(void (^)(id<MTLCommandBuffer>))onComplete {
     
-    if(_renderPipelineState) {
+    int type = 1;
+    if(type<0) type = 0;
+    else if(type>=_library.size()) type = _library.size()-1;
+    
+    if(_renderPipelineState[type]) {
         
-        id<MTLCommandBuffer> commandBuffer = [self setupCommandBuffer];
+        id<MTLCommandBuffer> commandBuffer = [self setupCommandBuffer:type];
         if(commandBuffer) {
             [commandBuffer addCompletedHandler:onComplete];
             [commandBuffer commit];

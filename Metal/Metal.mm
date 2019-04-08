@@ -21,7 +21,7 @@ class App {
             [[this->win contentView] addSubview:this->view];
             
             this->timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER,0,0,dispatch_queue_create("ENTER_FRAME",0));
-            dispatch_source_set_timer(this->timer,dispatch_time(0,0),(1.0/120)*1000000000,0);
+            dispatch_source_set_timer(this->timer,dispatch_time(0,0),(1.0/60)*1000000000,0);
             dispatch_source_set_event_handler(this->timer,^{
                 
                 [this->view update:
