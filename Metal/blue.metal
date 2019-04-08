@@ -21,6 +21,7 @@ struct FragmentShaderArguments {
     device float2 *resolution[[id(1)]];
     device float2 *mouse[[id(2)]];
     texture2d<float> texture[[id(3)]];
+    texture2d<float> map[[id(4)]];
 };
 
 vertex VertInOut vertexShader(constant float4 *pos[[buffer(0)]],constant packed_float2  *texcoord[[buffer(1)]],uint vid[[vertex_id]]) {

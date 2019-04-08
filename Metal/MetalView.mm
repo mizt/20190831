@@ -34,11 +34,15 @@ namespace Plane {
     
     id<MTLTexture> _drawabletexture;    
     
-    id<MTLTexture> _texture;
+    
 
     id<MTLBuffer> _timeBuffer;
     id<MTLBuffer> _resolutionBuffer;
     id<MTLBuffer> _mouseBuffer;
+    
+    id<MTLTexture> _texture;
+    id<MTLTexture> _map;
+    
     
     id<MTLBuffer> _vertexBuffer;
     id<MTLBuffer> _texcoordBuffer;
@@ -65,8 +69,20 @@ namespace Plane {
 -(BOOL)wantsUpdateLayer { return YES; }
 -(void)updateLayer { [super updateLayer]; }
 -(id<MTLTexture>)texture { return _texture; }
+-(id<MTLTexture>)map { return _map; }
 -(id<MTLTexture>)drawableTexture { return _drawabletexture; }
 -(void)cleanup { _metalDrawable = nil; }
+
+-(void)setColorAttachment:(MTLRenderPipelineColorAttachmentDescriptor *)colorAttachment {
+    colorAttachment.blendingEnabled = YES;
+    colorAttachment.rgbBlendOperation = MTLBlendOperationAdd;
+    colorAttachment.alphaBlendOperation = MTLBlendOperationAdd;
+    colorAttachment.sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+    colorAttachment.sourceAlphaBlendFactor = MTLBlendFactorOne;
+    colorAttachment.destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+    colorAttachment.destinationAlphaBlendFactor = MTLBlendFactorOne;
+}
+
 -(bool)setupShader {
     
     for(int k=0; k<_library.size(); k++) {
@@ -90,23 +106,15 @@ namespace Plane {
         if(!_renderPipelineDescriptor[k]) return nil;
         _argumentEncoder.push_back([fragmentFunction newArgumentEncoderWithBufferIndex:0]);
 
-        
         _renderPipelineDescriptor[k].depthAttachmentPixelFormat      = MTLPixelFormatInvalid;
         _renderPipelineDescriptor[k].stencilAttachmentPixelFormat    = MTLPixelFormatInvalid;
         _renderPipelineDescriptor[k].colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
         
-        MTLRenderPipelineColorAttachmentDescriptor *colorAttachment = _renderPipelineDescriptor[k].colorAttachments[0];
-        colorAttachment.blendingEnabled = YES;
-        colorAttachment.rgbBlendOperation = MTLBlendOperationAdd;
-        colorAttachment.alphaBlendOperation = MTLBlendOperationAdd;
-        colorAttachment.sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
-        colorAttachment.sourceAlphaBlendFactor = MTLBlendFactorOne;
-        colorAttachment.destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
-        colorAttachment.destinationAlphaBlendFactor = MTLBlendFactorOne;
+        [self setColorAttachment:_renderPipelineDescriptor[k].colorAttachments[0]];
         
         _renderPipelineDescriptor[k].sampleCount = 1;
        
-        _renderPipelineDescriptor[k].vertexFunction = vertexFunction;
+        _renderPipelineDescriptor[k].vertexFunction   = vertexFunction;
         _renderPipelineDescriptor[k].fragmentFunction = fragmentFunction;
         
         NSError *error = nil;
@@ -114,20 +122,44 @@ namespace Plane {
         if(error||!_renderPipelineState[k]) return true;
     }
     
-    
     return false;
 }
-/*
--(bool)reloadShader:(dispatch_data_t)data {
+
+-(bool)updateShader:(unsigned int)index {
+    
+    if(index>=_library.size()) return true;
+    
+    id<MTLFunction> vertexFunction  = [_library[index] newFunctionWithName:@"vertexShader"];
+    if(!vertexFunction) return nil;
+    
+    id<MTLFunction> fragmentFunction = [_library[index] newFunctionWithName:@"fragmentShader"];
+    if(!fragmentFunction) return nil;
+    
+    _argumentEncoder[index] = [fragmentFunction newArgumentEncoderWithBufferIndex:0];
+    
+    _renderPipelineDescriptor[index].sampleCount = 1;
+   
+    _renderPipelineDescriptor[index].vertexFunction   = vertexFunction;
+    _renderPipelineDescriptor[index].fragmentFunction = fragmentFunction;
     
     NSError *error = nil;
-    _library = [_device newLibraryWithData:data error:&error];
-    if(error||!_library) return true;
-    if([self setupShader]) return true;
+    _renderPipelineState[index] = [_device newRenderPipelineStateWithDescriptor:_renderPipelineDescriptor[index] error:&error];
+    if(error||!_renderPipelineState[index]) return true;
     
     return false;
 }
-*/
+
+
+-(bool)reloadShader:(dispatch_data_t)data :(unsigned int)index {
+    
+    NSError *error = nil;
+    _library[index] = [_device newLibraryWithData:data error:&error];
+    if(error||!_library[index]) return true;
+    if([self updateShader:index]) return true;
+    
+    return false;
+}
+
 -(id)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if(self) {
@@ -143,7 +175,6 @@ namespace Plane {
         _metalLayer.device = _device;
         _metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
         _metalLayer.colorspace = CGColorSpaceCreateDeviceRGB();
-        
         
         _metalLayer.opaque = NO;
         _metalLayer.framebufferOnly = NO;
@@ -165,11 +196,7 @@ namespace Plane {
         
         if([self setupShader]) return nil;
       
-        MTLTextureDescriptor *texDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:frame.size.width height:frame.size.height mipmapped:NO];
-        if(!texDesc) return nil;
-        
-        _texture = [_device newTextureWithDescriptor:texDesc];
-        if(!_texture)  return nil;
+     
         
         _timeBuffer = [_device newBufferWithLength:sizeof(float) options:MTLResourceOptionCPUCacheModeDefault];
         if(!_timeBuffer) return nil;
@@ -183,6 +210,15 @@ namespace Plane {
         
         _mouseBuffer = [_device newBufferWithLength:sizeof(float)*2 options:MTLResourceOptionCPUCacheModeDefault];
         if(!_mouseBuffer) return nil;
+        
+        MTLTextureDescriptor *texDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:frame.size.width height:frame.size.height mipmapped:NO];
+        if(!texDesc) return nil;
+        
+        _texture = [_device newTextureWithDescriptor:texDesc];
+        if(!_texture)  return nil;
+        
+        _map = [_device newTextureWithDescriptor:texDesc];
+        if(!_map)  return nil;
         
         _vertexBuffer = [_device newBufferWithBytes:Plane::vertexData length:6*sizeof(float)*4 options:MTLResourceOptionCPUCacheModeDefault];
         if(!_vertexBuffer) return nil;
@@ -198,6 +234,7 @@ namespace Plane {
             [_argumentEncoder[k] setBuffer:_resolutionBuffer offset:0 atIndex:1];
             [_argumentEncoder[k] setBuffer:_mouseBuffer offset:0 atIndex:2];
             [_argumentEncoder[k] setTexture:_texture atIndex:3];
+            [_argumentEncoder[k] setTexture:_map atIndex:4];
         }
     }
     return self;
@@ -255,6 +292,7 @@ namespace Plane {
         [renderEncoder useResource:_resolutionBuffer usage:MTLResourceUsageRead];
         [renderEncoder useResource:_mouseBuffer usage:MTLResourceUsageRead];
         [renderEncoder useResource:_texture usage:MTLResourceUsageSample];
+        [renderEncoder useResource:_map usage:MTLResourceUsageSample];
 
         [renderEncoder setFragmentBuffer:_argumentEncoderBuffer[mode] offset:0 atIndex:0];
 

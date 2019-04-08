@@ -10,8 +10,6 @@ class App {
         
         dispatch_source_t timer;
         
-        int cnt = 0;
-
     public:
         
         App() {
