@@ -9,6 +9,8 @@ class App {
         MetalView *view;
         
         dispatch_source_t timer;
+        
+        int cnt = 0;
 
     public:
         
@@ -20,10 +22,13 @@ class App {
             this->view = [[MetalView alloc] initWithFrame:rect];
             [[this->win contentView] addSubview:this->view];
             
+            
             this->timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER,0,0,dispatch_queue_create("ENTER_FRAME",0));
             dispatch_source_set_timer(this->timer,dispatch_time(0,0),(1.0/60)*1000000000,0);
             dispatch_source_set_event_handler(this->timer,^{
                 
+                
+                //[this->view mode:(cnt++)&1];
                 [this->view update:
                 ^(id<MTLCommandBuffer> commandBuffer){
                     [this->view cleanup];

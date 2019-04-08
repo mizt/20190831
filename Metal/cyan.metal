@@ -31,6 +31,5 @@ vertex VertInOut vertexShader(constant float4 *pos[[buffer(0)]],constant packed_
 }
 
  fragment float4 fragmentShader(VertInOut inFrag[[stage_in]],constant FragmentShaderArguments &args[[buffer(0)]]) {
-    
     return float4(0,1,1,1);
 }

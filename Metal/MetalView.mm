@@ -53,12 +53,15 @@ namespace Plane {
     CGRect _frame;
     double _starttime;
     
+    int _mode;
+    
 }
 @end
 
 @implementation MetalView
 
 +(Class)layerClass { return [CAMetalLayer class]; }
+-(void)mode:(unsigned int)n { _mode = n; }
 -(BOOL)wantsUpdateLayer { return YES; }
 -(void)updateLayer { [super updateLayer]; }
 -(id<MTLTexture>)texture { return _texture; }
@@ -157,7 +160,7 @@ namespace Plane {
         _library.push_back([_device newLibraryWithFile:[NSString stringWithFormat:@"%@/cyan.metallib",[[NSBundle mainBundle] bundlePath]] error:&error]);
         if(error||!_library[_library.size()-1]) return nil;
         
-        
+        _mode = 0;
         
         
         if([self setupShader]) return nil;
@@ -203,7 +206,7 @@ namespace Plane {
     return self;
 }
 
--(id<MTLCommandBuffer>)setupCommandBuffer:(int)type {
+-(id<MTLCommandBuffer>)setupCommandBuffer:(int)mode {
         
 	
     if(!_metalDrawable) {
@@ -249,7 +252,7 @@ namespace Plane {
         id<MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:_renderPassDescriptor];
         
         [renderEncoder setFrontFacingWinding:MTLWindingCounterClockwise];
-        [renderEncoder setRenderPipelineState:_renderPipelineState[type]];
+        [renderEncoder setRenderPipelineState:_renderPipelineState[mode]];
         
         [renderEncoder setVertexBuffer:_vertexBuffer offset:0 atIndex:0];
         [renderEncoder setVertexBuffer:_texcoordBuffer offset:0 atIndex:1];
@@ -259,7 +262,7 @@ namespace Plane {
         [renderEncoder useResource:_mouseBuffer usage:MTLResourceUsageRead];
         [renderEncoder useResource:_texture usage:MTLResourceUsageSample];
 
-        [renderEncoder setFragmentBuffer:_argumentEncoderBuffer[type] offset:0 atIndex:0];
+        [renderEncoder setFragmentBuffer:_argumentEncoderBuffer[mode] offset:0 atIndex:0];
 
         [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6 instanceCount:1];
         [renderEncoder endEncoding];
@@ -275,13 +278,14 @@ namespace Plane {
 
 -(void)update:(void (^)(id<MTLCommandBuffer>))onComplete {
     
-    int type = 1;
-    if(type<0) type = 0;
-    else if(type>=_library.size()) type = _library.size()-1;
+    int mode = _mode;
+    if(mode>=_library.size()) mode = _library.size()-1;
     
-    if(_renderPipelineState[type]) {
+    if(_renderPipelineState[mode]) {
         
-        id<MTLCommandBuffer> commandBuffer = [self setupCommandBuffer:type];
+        NSLog(@"mode %d",mode);
+        
+        id<MTLCommandBuffer> commandBuffer = [self setupCommandBuffer:mode];
         if(commandBuffer) {
             [commandBuffer addCompletedHandler:onComplete];
             [commandBuffer commit];
