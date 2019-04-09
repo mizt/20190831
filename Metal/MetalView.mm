@@ -1,7 +1,6 @@
 #import "MetalView.h"
 
 namespace Plane {
-    
     static const float vertexData[6][4] = {
         { -1.f,-1.f, 0.f, 1.f },
         {  1.f,-1.f, 0.f, 1.f },
@@ -10,7 +9,6 @@ namespace Plane {
         { -1.f, 1.f, 0.f, 1.f },
         {  1.f, 1.f, 0.f, 1.f }
     };
-    
     static const float textureCoordinateData[6][2] = {
         { 0.f, 0.f },
         { 1.f, 0.f },
@@ -32,8 +30,6 @@ namespace Plane {
     id<CAMetalDrawable> _metalDrawable;
     
     id<MTLTexture> _drawabletexture;    
-    
-    
 
     id<MTLBuffer> _timeBuffer;
     id<MTLBuffer> _resolutionBuffer;
@@ -41,12 +37,10 @@ namespace Plane {
     
     id<MTLTexture> _texture;
     id<MTLTexture> _map;
-    
-    
+        
     id<MTLBuffer> _vertexBuffer;
     id<MTLBuffer> _texcoordBuffer;
     
-   
     std::vector<id<MTLLibrary>> _library;
     std::vector<id<MTLRenderPipelineState>> _renderPipelineState;
     std::vector<MTLRenderPipelineDescriptor *> _renderPipelineDescriptor;
