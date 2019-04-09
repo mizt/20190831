@@ -17,9 +17,9 @@ class App {
             CGRect rect = CGRectMake(0,0,960,540);
             
             this->win = [[NSWindow alloc] initWithContentRect:rect styleMask:1|1<<2 backing:NSBackingStoreBuffered defer:NO];
-            this->view = [[MetalView alloc] initWithFrame:rect];
+            this->view = [[MetalView alloc] initWithFrame:rect :{@"blue.metallib",@"cyan.metallib"}];
+            [this->view mode:1];
             [[this->win contentView] addSubview:this->view];
-            
             
             this->timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER,0,0,dispatch_queue_create("ENTER_FRAME",0));
             dispatch_source_set_timer(this->timer,dispatch_time(0,0),(1.0/60)*1000000000,0);

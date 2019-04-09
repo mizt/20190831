@@ -1,5 +1,4 @@
 #import "MetalView.h"
-#import <vector>
 
 namespace Plane {
     
@@ -160,85 +159,102 @@ namespace Plane {
     return false;
 }
 
--(id)initWithFrame:(CGRect)frame {
+-(bool)setup:(std::vector<NSString *>)shaders {
+    
+    _starttime = CFAbsoluteTimeGetCurrent();
+
+    self.wantsLayer = YES;
+    self.layer = [CAMetalLayer layer];
+    _metalLayer = (CAMetalLayer *)self.layer;
+    _device = MTLCreateSystemDefaultDevice();
+    
+    _metalLayer.device = _device;
+    _metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+    _metalLayer.colorspace = CGColorSpaceCreateDeviceRGB();
+    
+    _metalLayer.opaque = NO;
+    _metalLayer.framebufferOnly = NO;
+    _metalLayer.displaySyncEnabled = YES;
+    
+    _commandQueue = [_device newCommandQueue];
+    if(!_commandQueue) return true;
+    
+    
+    NSError *error = nil;
+    
+    for(int k=0; k<shaders.size(); k++) {
+         _library.push_back([_device newLibraryWithFile:[NSString stringWithFormat:@"%@/%@",[[NSBundle mainBundle] bundlePath],shaders[k]] error:&error]);
+        if(error||!_library[_library.size()-1]) return true;
+    }
+    
+    _mode = 0;
+    
+    
+    if([self setupShader]) return true;
+    
+    _timeBuffer = [_device newBufferWithLength:sizeof(float) options:MTLResourceOptionCPUCacheModeDefault];
+    if(!_timeBuffer) return true;
+    
+    _resolutionBuffer = [_device newBufferWithLength:sizeof(float)*2 options:MTLResourceOptionCPUCacheModeDefault];
+    if(!_resolutionBuffer) return true;
+    
+    float *resolutionBuffer = (float *)[_resolutionBuffer contents];
+    resolutionBuffer[0] = _frame.size.width;
+    resolutionBuffer[1] = _frame.size.height;
+    
+    _mouseBuffer = [_device newBufferWithLength:sizeof(float)*2 options:MTLResourceOptionCPUCacheModeDefault];
+    if(!_mouseBuffer) return true;
+    
+    MTLTextureDescriptor *texDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:_frame.size.width height:_frame.size.height mipmapped:NO];
+    if(!texDesc) return true;
+    
+    _texture = [_device newTextureWithDescriptor:texDesc];
+    if(!_texture)  return true;
+    
+    _map = [_device newTextureWithDescriptor:texDesc];
+    if(!_map)  return true;
+    
+    _vertexBuffer = [_device newBufferWithBytes:Plane::vertexData length:6*sizeof(float)*4 options:MTLResourceOptionCPUCacheModeDefault];
+    if(!_vertexBuffer) return true;
+    
+    _texcoordBuffer = [_device newBufferWithBytes:Plane::textureCoordinateData length:6*sizeof(float)*2 options:MTLResourceOptionCPUCacheModeDefault];
+    if(!_texcoordBuffer) return true;
+    
+    for(int k=0; k<_library.size(); k++) {
+        _argumentEncoderBuffer.push_back([_device newBufferWithLength:sizeof(float)*[_argumentEncoder[k] encodedLength] options:MTLResourceOptionCPUCacheModeDefault]);
+
+        [_argumentEncoder[k] setArgumentBuffer:_argumentEncoderBuffer[k] offset:0];
+        [_argumentEncoder[k] setBuffer:_timeBuffer offset:0 atIndex:0];
+        [_argumentEncoder[k] setBuffer:_resolutionBuffer offset:0 atIndex:1];
+        [_argumentEncoder[k] setBuffer:_mouseBuffer offset:0 atIndex:2];
+        [_argumentEncoder[k] setTexture:_texture atIndex:3];
+        [_argumentEncoder[k] setTexture:_map atIndex:4];
+    }
+    
+    return false;
+}
+
+-(id)initWithFrame:(CGRect)frame :(std::vector<NSString *>)shaders {
+    
+    if(shaders.size()==0) return nil;
     self = [super initWithFrame:frame];
     if(self) {
-        
         _frame = frame;
-        _starttime = CFAbsoluteTimeGetCurrent();
-
-        self.wantsLayer = YES;
-        self.layer = [CAMetalLayer layer];
-        _metalLayer = (CAMetalLayer *)self.layer;
-        _device = MTLCreateSystemDefaultDevice();
-        
-        _metalLayer.device = _device;
-        _metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
-        _metalLayer.colorspace = CGColorSpaceCreateDeviceRGB();
-        
-        _metalLayer.opaque = NO;
-        _metalLayer.framebufferOnly = NO;
-        _metalLayer.displaySyncEnabled = YES;
-        
-        _commandQueue = [_device newCommandQueue];
-        if(!_commandQueue) return nil;
-        
-        
-        NSError *error = nil;
-        _library.push_back([_device newLibraryWithFile:[NSString stringWithFormat:@"%@/blue.metallib",[[NSBundle mainBundle] bundlePath]] error:&error]);
-        if(error||!_library[_library.size()-1]) return nil;
-        
-        _library.push_back([_device newLibraryWithFile:[NSString stringWithFormat:@"%@/cyan.metallib",[[NSBundle mainBundle] bundlePath]] error:&error]);
-        if(error||!_library[_library.size()-1]) return nil;
-        
-        _mode = 0;
-        
-        
-        if([self setupShader]) return nil;
-      
-     
-        
-        _timeBuffer = [_device newBufferWithLength:sizeof(float) options:MTLResourceOptionCPUCacheModeDefault];
-        if(!_timeBuffer) return nil;
-        
-        _resolutionBuffer = [_device newBufferWithLength:sizeof(float)*2 options:MTLResourceOptionCPUCacheModeDefault];
-        if(!_resolutionBuffer) return nil;
-        
-        float *resolutionBuffer = (float *)[_resolutionBuffer contents];
-        resolutionBuffer[0] = _frame.size.width;
-        resolutionBuffer[1] = _frame.size.height;
-        
-        _mouseBuffer = [_device newBufferWithLength:sizeof(float)*2 options:MTLResourceOptionCPUCacheModeDefault];
-        if(!_mouseBuffer) return nil;
-        
-        MTLTextureDescriptor *texDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:frame.size.width height:frame.size.height mipmapped:NO];
-        if(!texDesc) return nil;
-        
-        _texture = [_device newTextureWithDescriptor:texDesc];
-        if(!_texture)  return nil;
-        
-        _map = [_device newTextureWithDescriptor:texDesc];
-        if(!_map)  return nil;
-        
-        _vertexBuffer = [_device newBufferWithBytes:Plane::vertexData length:6*sizeof(float)*4 options:MTLResourceOptionCPUCacheModeDefault];
-        if(!_vertexBuffer) return nil;
-        
-        _texcoordBuffer = [_device newBufferWithBytes:Plane::textureCoordinateData length:6*sizeof(float)*2 options:MTLResourceOptionCPUCacheModeDefault];
-        if(!_texcoordBuffer) return nil;
-        
-        for(int k=0; k<_library.size(); k++) {
-            _argumentEncoderBuffer.push_back([_device newBufferWithLength:sizeof(float)*[_argumentEncoder[k] encodedLength] options:MTLResourceOptionCPUCacheModeDefault]);
-
-            [_argumentEncoder[k] setArgumentBuffer:_argumentEncoderBuffer[k] offset:0];
-            [_argumentEncoder[k] setBuffer:_timeBuffer offset:0 atIndex:0];
-            [_argumentEncoder[k] setBuffer:_resolutionBuffer offset:0 atIndex:1];
-            [_argumentEncoder[k] setBuffer:_mouseBuffer offset:0 atIndex:2];
-            [_argumentEncoder[k] setTexture:_texture atIndex:3];
-            [_argumentEncoder[k] setTexture:_map atIndex:4];
-        }
+       if([self setup:shaders]) return nil;
     }
     return self;
 }
+
+-(id)initWithFrame:(CGRect)frame {
+    
+    self = [super initWithFrame:frame];
+    if(self) {
+        _frame = frame;
+       if([self setup:{@"blue.metallib"}]) return nil;
+    }
+    return self;
+}
+
 
 -(id<MTLCommandBuffer>)setupCommandBuffer:(int)mode {
     
