@@ -16,8 +16,7 @@
         height = rect.size.height;
         bmp = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL pixelsWide:width pixelsHigh:height bitsPerSample:8 samplesPerPixel:4 hasAlpha:YES isPlanar:NO colorSpaceName:NSDeviceRGBColorSpace bytesPerRow:NULL bitsPerPixel:NULL];
         img = [[NSImage alloc] initWithSize:NSMakeSize(width,height)];
-        [img addRepresentation:bmp];
-        
+        [img addRepresentation:bmp];        
          for(int i=0; i<height; i++) {
             unsigned char *src = jpg+i*width*3;
             unsigned int *dst = ((unsigned int *)[bmp bitmapData]+i*([bmp bytesPerRow]>>2));
@@ -28,7 +27,6 @@
                 *dst++ = 0xFF000000|b<<16|g<<8|r;
             }
         }
-            
     }  
     return self;
 }
@@ -92,7 +90,6 @@ class App {
 
 int main(int argc, char *argv[]) {
     @autoreleasepool {
-    
         id app = [NSApplication sharedApplication];
         id delegat = [AppDelegate alloc];
         [app setDelegate:delegat];

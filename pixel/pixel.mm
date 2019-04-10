@@ -15,7 +15,6 @@ namespace stb_image {
 #define WIDTH 1920
 #define HEIGHT 1080 
 
-
 class App {
     
     private:
@@ -110,7 +109,6 @@ class App {
 
 int main(int argc, char *argv[]) {
     @autoreleasepool {
-    
         id app = [NSApplication sharedApplication];
         id delegat = [AppDelegate alloc];
         [app setDelegate:delegat];
