@@ -31,9 +31,7 @@ class App {
         
         App() {
             
-            
-            this->buffer = new unsigned int[WIDTH*HEIGHT];
-            
+            this->buffer = new unsigned int[WIDTH*HEIGHT];            
             
             CGRect rect = CGRectMake(0,0,960,540);
             
@@ -75,12 +73,7 @@ class App {
                             [this->win makeKeyAndOrderFront:nil];
                         });
                     });
-                    
                 }
-                
-                
-                
-                
             });
             if(this->timer) dispatch_resume(this->timer);                
         }
