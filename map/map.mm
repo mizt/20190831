@@ -12,7 +12,7 @@ namespace stb_image {
 }
 #pragma clang diagnostic pop
 
-#define WIDTH 1920
+#define WIDTH  1920
 #define HEIGHT 1080 
 
 
@@ -126,7 +126,6 @@ class App {
 
 int main(int argc, char *argv[]) {
     @autoreleasepool {
-    
         id app = [NSApplication sharedApplication];
         id delegat = [AppDelegate alloc];
         [app setDelegate:delegat];
