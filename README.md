@@ -1,6 +1,6 @@
 # 20190419
 
-Test code for live on Fri 19 Apr. 2019. (WIP)
+Test code for live on Fri 19 Apr. 2019  (WIP)
 
 ### Requirements
 
