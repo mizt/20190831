@@ -32,7 +32,7 @@ vertex VertInOut vertexShader(constant float4 *pos[[buffer(0)]],constant packed_
 
 fragment float4 fragmentShader(VertInOut inFrag[[stage_in]],constant FragmentShaderArguments &args[[buffer(0)]]) {
     constexpr sampler quadSampler(coord::normalized, filter::linear);
-    half4 rgba = args.texture.sample(quadSampler,inFrag.texcoord);
+    float4 rgba = args.texture.sample(quadSampler,inFrag.texcoord);
 
     int y = rgba.r*255.0-16.0;
     int u = rgba.g*255.0-128.0;
