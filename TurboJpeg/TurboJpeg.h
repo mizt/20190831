@@ -1,22 +1,13 @@
 namespace TurboJpeg {
 
     #include "jpeglib.h"
-    #include <setjmp.h>
-
-    typedef struct error_mgr {
-        struct jpeg_error_mgr pub;
-        jmp_buf setjmp_buffer;
-    } *error_ptr;
   
-    struct jpeg_decompress_struct cinfo;
-    struct TurboJpeg::error_mgr jerr;
-    
     struct jpeg_decompress_struct info;
-    struct jpeg_error_mgr err;
 
     void load(NSString *filename,unsigned char *dst,int w,int h,int ch) {
         
         FILE *file = fopen([filename UTF8String],"rb");
+        struct jpeg_error_mgr err;
         
         info.err = jpeg_std_error(&err);
         jpeg_create_decompress(&info);

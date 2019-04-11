@@ -59,7 +59,6 @@ class App {
 
 int main(int argc, char *argv[]) {
     @autoreleasepool {
-    
         id app = [NSApplication sharedApplication];
         id delegat = [AppDelegate alloc];
         [app setDelegate:delegat];

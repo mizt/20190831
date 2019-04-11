@@ -6,7 +6,6 @@
 
 int main(int argc, char *argv[]) {
     @autoreleasepool {
-        
         void *dylib = (Plugin *)dlopen([[NSString stringWithFormat:@"%@/Test/Test.dylib",[[NSBundle mainBundle] bundlePath]] UTF8String],RTLD_LAZY);
         if(dylib) {
             Plugin *plugin = ((newPlugin *)dlsym(dylib,"newPlugin"))();

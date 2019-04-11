@@ -40,11 +40,8 @@ class App {
 };
 
 int main(int argc, char *argv[]) {
-
     @autoreleasepool {
-        
         App *app = new App();
-        [[NSApplication sharedApplication] run];       
-        
+        [[NSApplication sharedApplication] run];
     }
 }

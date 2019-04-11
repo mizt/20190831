@@ -41,7 +41,6 @@ class App {
 
 @implementation AppDelegate
 -(void)applicationDidFinishLaunching:(NSNotification*)aNotification {
-    
     m = new App();
     then = CFAbsoluteTimeGetCurrent();
     timer = [NSTimer scheduledTimerWithTimeInterval:1/60. target:self selector:@selector(update:) userInfo:nil repeats:YES];

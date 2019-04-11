@@ -86,15 +86,6 @@ namespace Plane {
         id<MTLFunction> fragmentFunction = [_library[k] newFunctionWithName:@"fragmentShader"];
         if(!fragmentFunction) return nil;
         
-        /*
-        if(_renderPipelineDescriptor==nil) {
-            _renderPipelineDescriptor = [MTLRenderPipelineDescriptor new];
-            if(!_renderPipelineDescriptor) return nil;
-            
-            _argumentEncoder = [fragmentFunction newArgumentEncoderWithBufferIndex:0];
-         }
-        */
-        
         _renderPipelineDescriptor.push_back([MTLRenderPipelineDescriptor new]);
         if(!_renderPipelineDescriptor[k]) return nil;
         _argumentEncoder.push_back([fragmentFunction newArgumentEncoderWithBufferIndex:0]);
