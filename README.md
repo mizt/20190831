@@ -29,11 +29,9 @@ How to build ./Metal/Metal
 ### See also
 
 [rdm-jpg](https://github.com/mizt/rdm-jpg) Extra JPEG File Format.   
-[map](https://github.com/mizt/map) Bake a Map data.    
+[map/write.mm](https://github.com/mizt/map/blob/master/write.mm) Bake a Map data.    
 [METAL-NYUMON](https://note.mu/mizt/n/n1a3f0d2a555b)（CodeRunnerでビルドする方法）
 
 ### 20190318
 
 OSCのライブラリを自作のものから[TinyOSC](https://github.com/mhroth/tinyosc)に変更
-
-
