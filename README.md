@@ -19,12 +19,11 @@ How to build ./Metal/Metal
 
     $ cd ./Metal
     $ xcrun clang++ -ObjC++ -lc++ -fobjc-arc -O3 -std=c++17 -Wc++17-extensions -framework Cocoa -framework Metal -framework Quartz ./MetalView.mm ./Metal.mm -o Metal
-	$ ./Metal
+    $ ./Metal
 
 #### Linking libjpeg-turbo
 
-	 -I../libs/libjpeg-turbo -L../libs/libjpeg-turbo -lturbojpeg
-
+    -I../libs/libjpeg-turbo -L../libs/libjpeg-turbo -lturbojpeg
 
 ### See also
 
