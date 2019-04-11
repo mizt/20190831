@@ -29,7 +29,10 @@ How to build ./Metal/Metal
 
 [rdm-jpg](https://github.com/mizt/rdm-jpg) Extra JPEG File Format.   
 [map/write.mm](https://github.com/mizt/map/blob/master/write.mm) Bake a Map data.    
-[METAL-NYUMON](https://note.mu/mizt/n/n1a3f0d2a555b)（CodeRunnerでビルドする方法）
+[METAL-NYUMON](https://note.mu/mizt/n/n1a3f0d2a555b)（CodeRunnerでビルドする方法）    
+[kimasendorf/ASDFPixelSort](https://github.com/kimasendorf/ASDFPixelSort)    
+[PixelSortの高速化](https://note.mu/mizt/n/n9f5b7e8ac599)
+
 
 ### 20190318
 
