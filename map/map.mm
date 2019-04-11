@@ -93,9 +93,6 @@ class App {
                     
                 }
                 
-                
-                
-                
             });
             if(this->timer) dispatch_resume(this->timer);                
         }

@@ -1,18 +1,7 @@
 #import <Cocoa/Cocoa.h>
 #import "../Metal/MetalView.h"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wcomma"
-#pragma clang diagnostic ignored "-Wunused-function"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#define STB_IMAGE_IMPLEMENTATION
-#define STBI_ONLY_PNG
-namespace stb_image {
-    #import "../common/stb_image.h"
-}
-#pragma clang diagnostic pop
-
-#define WIDTH 1920
+#define WIDTH  1920
 #define HEIGHT 1080 
 
 class App {
@@ -35,7 +24,7 @@ class App {
             CGRect rect = CGRectMake(0,0,960,540);
             
             this->win = [[NSWindow alloc] initWithContentRect:rect styleMask:1|1<<2 backing:NSBackingStoreBuffered defer:NO];
-            this->view = [[MetalView alloc] initWithFrame:CGRectMake(0,0,WIDTH,HEIGHT) :{@"bypass.metallib"}];
+            this->view = [[MetalView alloc] initWithFrame:CGRectMake(0,0,WIDTH,HEIGHT) :{@"../common/bypass.metallib"}];
             [this->view setFrame:rect];
             [this->view mode:0];
             [[this->win contentView] addSubview:this->view];
