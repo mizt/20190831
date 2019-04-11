@@ -18,14 +18,12 @@ class App {
                 me->then = current;
             }
             
-            
             return kCVReturnSuccess;
         }
         
     public:
         
         App() {
-            
             CVReturn cvReturn = CVDisplayLinkCreateWithActiveCGDisplays(&this->displayLink);
             cvReturn = CVDisplayLinkSetOutputCallback(this->displayLink,&OnDisplayLinkFrame,this);
             cvReturn = CVDisplayLinkSetCurrentCGDisplay(this->displayLink,CGMainDisplayID());
