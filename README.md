@@ -34,6 +34,11 @@ How to build ./Metal/Metal
 [PixelSortの高速化](https://note.mu/mizt/n/n9f5b7e8ac599)
 
 
+### note
+
+`transition` used CoreGraphics private API.
+
+
 ### 20190318
 
 OSCのライブラリを自作のものから[TinyOSC](https://github.com/mhroth/tinyosc)に変更

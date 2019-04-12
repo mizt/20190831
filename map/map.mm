@@ -15,7 +15,6 @@ namespace stb_image {
 #define WIDTH  1920
 #define HEIGHT 1080 
 
-
 class App {
     
     private:
