@@ -34,7 +34,7 @@ How to build ./Metal/Metal
 [PixelSortの高速化](https://note.mu/mizt/n/n9f5b7e8ac599)
 
 
-### note
+### Note
 
 `transition` used CoreGraphics private API.
 
