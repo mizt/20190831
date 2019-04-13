@@ -98,6 +98,16 @@ class App {
         
         ~App() {
             
+            if(this->src) {
+                delete[] this->src;
+                this->src = nullptr; 
+            }
+            
+            if(this->map) {
+                delete[] this->map;
+                this->map = nullptr;
+            }
+            
             if(this->timer){
                 dispatch_source_cancel(this->timer);
                 this->timer = nullptr;
