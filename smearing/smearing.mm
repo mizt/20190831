@@ -63,7 +63,7 @@ class App {
                     int width  = (int)texture.width;
                     int height = (int)texture.height;
                     
-                    double rad = (45)*3.1415/180.;
+                    double rad = (45)*M_PI/180.;
 
                     double cx =(WIDTH *0.5);
                     double cy =(HEIGHT*0.5);
