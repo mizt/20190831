@@ -100,12 +100,7 @@ class App {
                             
                             cnt+=step;
                             
-                            if(j2>=0&&i2>=0&&j2<=width-1&&i2<=height-1) {
-                                this->buffer[i*WIDTH+j] = this->src[i2*WIDTH+j2];
-                            }
-                            else {
-                                this->buffer[i*WIDTH+j] = 0xFF000000;
-                            }
+                            this->buffer[i*WIDTH+j] = this->src[i2*WIDTH+j2];
                             
                         }
                     }
