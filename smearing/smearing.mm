@@ -63,10 +63,10 @@ class App {
                     int width  = (int)texture.width;
                     int height = (int)texture.height;
                     
-                    double rad = (45)*M_PI/180.;
+                    double rad = (45.0)*M_PI/180.;
 
-                    double cx =(WIDTH *0.5);
-                    double cy =(HEIGHT*0.5);
+                    double cx =(WIDTH)*0.5;
+                    double cy =(HEIGHT)*0.5;
 
                     double nx=cos(rad);
                     double ny=sin(rad);
@@ -78,7 +78,7 @@ class App {
                         double y = i-cy;
                         double begin = ((bx*nx)+(y*ny));
                         double end   = ((ex*nx)+(y*ny));
-                        double step = (end-begin)/((double)WIDTH);
+                        double step = (end-begin)/((double)(WIDTH-1));
                         double cnt = begin;
                         
                         for(int j=0; j<WIDTH; j++) {
@@ -92,18 +92,25 @@ class App {
                             }
                             else {
                                 double x=j-cx;
-                                j2=(x-(cnt*nx))+cx;
-                                i2=(y-(cnt*ny))+cy;
-                                j2=(j2<0)?0:(j2>=WIDTH )?WIDTH-1 :j2;
-                                i2=(i2<0)?0:(i2>=HEIGHT)?HEIGHT-1:i2;
+                                j2=((x-(cnt*nx))+cx);
+                                i2=((y-(cnt*ny))+cy);
+                                j2=(j2<0)?0:(j2>=WIDTH -1)?WIDTH -1:j2;
+                                i2=(i2<0)?0:(i2>=HEIGHT-1)?HEIGHT-1:i2;
                             }      
                             
                             cnt+=step;
                             
-                            this->buffer[i*WIDTH+j] = this->src[i2*WIDTH+j2];
+                            if(j2>=0&&i2>=0&&j2<=width-1&&i2<=height-1) {
+                                this->buffer[i*WIDTH+j] = this->src[i2*WIDTH+j2];
+                            }
+                            else {
+                                this->buffer[i*WIDTH+j] = 0xFF000000;
+                            }
+                            
                         }
                     }
-                    
+                        
+                        
                     [texture replaceRegion:MTLRegionMake2D(0,0,width,height) mipmapLevel:0 withBytes:this->buffer bytesPerRow:width<<2];
                     
                     [this->view update:
