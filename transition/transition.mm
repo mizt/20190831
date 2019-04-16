@@ -17,12 +17,10 @@ int main(int argc, char *argv[]) {
             0,
             NULL
         };
-
-        int transition = 0;
-        CGSNewTransition(cid,&spec,&transition);
-        CGSInvokeTransition(cid,transition,TRANSITION_DURATION);
-        sleep(TRANSITION_DURATION);
-        CGSReleaseTransition(cid,transition);
-            
+        int tid = 0;
+        CGSNewTransition(cid,&spec,&tid);
+        CGSInvokeTransition(cid,tid,TRANSITION_DURATION);
+        usleep(TRANSITION_DURATION*1000000.0);
+        CGSReleaseTransition(cid,tid);
     }
 }
