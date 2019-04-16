@@ -1,5 +1,5 @@
 #import <Cocoa/Cocoa.h>
-#import <objc/runtime.h>
+#import "../common/addMethod.h"
 
 static void onResize(CGDirectDisplayID displayID,CGDisplayChangeSummaryFlags flags,void *win) {
     if(CGMainDisplayID()==displayID) {
@@ -11,29 +11,30 @@ static void onResize(CGDirectDisplayID displayID,CGDisplayChangeSummaryFlags fla
 
 int main(int argc, char *argv[]) {
     @autoreleasepool {
+        
+        int w = 1280;
+        int h = 720+22;
+        
         NSApplication *app = [NSApplication sharedApplication];
-        objc_registerClassPair(objc_allocateClassPair(objc_getClass("NSView"),"Guide",0));
+        if(objc_getClass("Guide")==nil) { objc_registerClassPair(objc_allocateClassPair(objc_getClass("NSView"),"Guide",0)); }
         Class Guide = objc_getClass("Guide");
-        const char *type = "v@:@";
-        SEL method = NSSelectorFromString(@"drawRect:");
-        class_addMethod(Guide,NSSelectorFromString(@"_drawRect:"),method_getImplementation(class_getInstanceMethod(Guide,method)),type);
-        class_replaceMethod(Guide,method,imp_implementationWithBlock(^(id me,Rect dirtyRect) {
-            CGRect rect = [[[NSScreen screens] objectAtIndex:0] frame];
-            [[NSColor clearColor] setFill];
-            [[NSBezierPath bezierPathWithRect:rect] fill];
-            [[NSColor colorWithRed:0.
-                green:1.
-                blue:1.
-                alpha:0.9] setStroke];
-            NSBezierPath *path = [NSBezierPath bezierPath];
-            path.lineWidth = 1.;
-            [path moveToPoint:NSMakePoint(rect.size.width*.5,0)];
-            [path lineToPoint: NSMakePoint(rect.size.width*.5,rect.size.height)];
-            [path moveToPoint:NSMakePoint(0,rect.size.height*.5)];
-            [path lineToPoint: NSMakePoint(rect.size.width,rect.size.height*.5)];
-            [path stroke];
-            [[NSBezierPath bezierPathWithRect:CGRectMake((rect.size.width-1280)*0.5,(rect.size.height-(720+22))*.5,1280,(720+22))] stroke];
-        }),type); 
+        addMethod(Guide,@"drawRect:",^(id me,NSRect dirtyRect) {
+             CGRect rect = [[[NSScreen screens] objectAtIndex:0] frame];
+                [[NSColor clearColor] setFill];
+                [[NSBezierPath bezierPathWithRect:rect] fill];
+                [[NSColor colorWithRed:0.
+                    green:1.
+                    blue:1.
+                    alpha:0.9] setStroke];
+                NSBezierPath *path = [NSBezierPath bezierPath];
+                path.lineWidth = 1.;
+                [path moveToPoint:NSMakePoint(rect.size.width*.5,0)];
+                [path lineToPoint: NSMakePoint(rect.size.width*.5,rect.size.height)];
+                [path moveToPoint:NSMakePoint(0,rect.size.height*.5)];
+                [path lineToPoint: NSMakePoint(rect.size.width,rect.size.height*.5)];
+                [path stroke];
+                [[NSBezierPath bezierPathWithRect:CGRectMake((rect.size.width-w)*0.5,(rect.size.height-(h))*.5,w,h)] stroke];
+        },"v@:@");
         CGRect rect = [[[NSScreen screens] objectAtIndex:0] frame];
         NSView *view = [[Guide alloc] initWithFrame:rect];
         [view setAutoresizingMask:(NSViewWidthSizable|NSViewHeightSizable)];
