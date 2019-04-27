@@ -66,6 +66,14 @@ namespace Plane {
 -(id<MTLTexture>)drawableTexture { return _drawabletexture; }
 -(void)cleanup { _metalDrawable = nil; }
 
+-(void)resize:(CGRect)frame {
+    self.frame = frame;
+    id<MTLTexture> texture = [self texture];
+    int width  = (int)texture.width;
+    int height = (int)texture.height;    
+    _metalLayer.drawableSize = CGSizeMake(width,height);
+}
+
 -(void)setColorAttachment:(MTLRenderPipelineColorAttachmentDescriptor *)colorAttachment {
     colorAttachment.blendingEnabled = YES;
     colorAttachment.rgbBlendOperation = MTLBlendOperationAdd;

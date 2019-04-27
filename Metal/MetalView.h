@@ -10,4 +10,5 @@
 -(id<MTLTexture>)map;
 -(id<MTLTexture>)drawableTexture;
 -(void)cleanup;
+-(void)resize:(CGRect)frame;
 @end
