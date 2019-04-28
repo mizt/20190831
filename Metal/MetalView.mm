@@ -49,9 +49,9 @@ namespace Plane {
         
     CGRect _frame;
     double _starttime;
-    
+
+    bool _isGetBytes;
     int _mode;
-    
 }
 @end
 
@@ -102,7 +102,12 @@ namespace Plane {
         _renderPipelineDescriptor[k].stencilAttachmentPixelFormat    = MTLPixelFormatInvalid;
         _renderPipelineDescriptor[k].colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
         
-        [self setColorAttachment:_renderPipelineDescriptor[k].colorAttachments[0]];
+        if(_isGetBytes) {
+            _renderPipelineDescriptor[k].colorAttachments[0].blendingEnabled = NO;
+        }
+        else {
+            [self setColorAttachment:_renderPipelineDescriptor[k].colorAttachments[0]];
+        }
         
         _renderPipelineDescriptor[k].sampleCount = 1;
        
@@ -152,7 +157,7 @@ namespace Plane {
     return false;
 }
 
--(bool)setup:(std::vector<NSString *>)shaders {
+-(bool)setup:(std::vector<NSString *>)shaders :(bool)isGetBytes {
     
     _starttime = CFAbsoluteTimeGetCurrent();
 
@@ -180,8 +185,8 @@ namespace Plane {
         if(error||!_library[_library.size()-1]) return true;
     }
     
+    _isGetBytes = isGetBytes;
     _mode = 0;
-    
     
     if([self setupShader]) return true;
     
@@ -227,23 +232,35 @@ namespace Plane {
     return false;
 }
 
+-(id)initWithFrame:(CGRect)frame :(std::vector<NSString *>)shaders :(bool)isGetBytes {
+    
+    if(shaders.size()==0) return nil;
+    self = [super initWithFrame:frame];
+    if(self) {
+        _frame = frame;
+       if([self setup:shaders :isGetBytes]) return nil;
+    }
+    return self;
+}
+
 -(id)initWithFrame:(CGRect)frame :(std::vector<NSString *>)shaders {
     
     if(shaders.size()==0) return nil;
     self = [super initWithFrame:frame];
     if(self) {
         _frame = frame;
-       if([self setup:shaders]) return nil;
+       if([self setup:shaders :false]) return nil;
     }
     return self;
 }
+
 
 -(id)initWithFrame:(CGRect)frame {
     
     self = [super initWithFrame:frame];
     if(self) {
         _frame = frame;
-       if([self setup:{@"blue.metallib"}]) return nil;
+       if([self setup:{@"blue.metallib"} :false]) return nil;
     }
     return self;
 }
