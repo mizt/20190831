@@ -2,19 +2,22 @@
 
 namespace Plane {
     
-    static const float vertices[4][4] = {
+    static const int VERTICES_SIZE = 4;
+    static const float vertices[VERTICES_SIZE][4] = {
         { -1.f,-1.f, 0.f, 1.f },
         {  1.f,-1.f, 0.f, 1.f },
         { -1.f, 1.f, 0.f, 1.f },
         {  1.f, 1.f, 0.f, 1.f }
     };
     
-    static const unsigned short indices[6] = {
+    static const int INDICES_SIZE = 6;
+    static const unsigned short indices[INDICES_SIZE] = {
         0,1,2,
         1,2,3
     };
     
-    static const float texcoord[4][2] = {
+    static const int TEXCOORD_SIZE = 4;
+    static const float texcoord[TEXCOORD_SIZE][2] = {
         { 0.f, 0.f },
         { 1.f, 0.f },
         { 0.f, 1.f },
@@ -216,13 +219,13 @@ namespace Plane {
     _map = [_device newTextureWithDescriptor:texDesc];
     if(!_map)  return true;
     
-    _verticesBuffer = [_device newBufferWithBytes:Plane::vertices length:4*sizeof(float)*4 options:MTLResourceOptionCPUCacheModeDefault];
+    _verticesBuffer = [_device newBufferWithBytes:Plane::vertices length:Plane::VERTICES_SIZE*sizeof(float)*4 options:MTLResourceOptionCPUCacheModeDefault];
     if(!_verticesBuffer) return true;
     
-    _indicesBuffer = [_device newBufferWithBytes:Plane::indices length:6*sizeof(short) options:MTLResourceOptionCPUCacheModeDefault];
+    _indicesBuffer = [_device newBufferWithBytes:Plane::indices length:Plane::INDICES_SIZE*sizeof(short) options:MTLResourceOptionCPUCacheModeDefault];
     if(!_indicesBuffer) return true;
     
-    _texcoordBuffer = [_device newBufferWithBytes:Plane::texcoord length:4*sizeof(float)*2 options:MTLResourceOptionCPUCacheModeDefault];
+    _texcoordBuffer = [_device newBufferWithBytes:Plane::texcoord length:Plane::TEXCOORD_SIZE*sizeof(float)*2 options:MTLResourceOptionCPUCacheModeDefault];
     if(!_texcoordBuffer) return true;
     
     for(int k=0; k<_library.size(); k++) {
@@ -329,7 +332,7 @@ namespace Plane {
 
         [renderEncoder setFragmentBuffer:_argumentEncoderBuffer[mode] offset:0 atIndex:0];
 
-        [renderEncoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexCount:6 indexType:MTLIndexTypeUInt16 indexBuffer:_indicesBuffer indexBufferOffset:0];
+        [renderEncoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexCount:Plane::INDICES_SIZE indexType:MTLIndexTypeUInt16 indexBuffer:_indicesBuffer indexBufferOffset:0];
             
         [renderEncoder endEncoding];
         [commandBuffer presentDrawable:_metalDrawable];

@@ -47,16 +47,14 @@ class App {
             }
             else {
                 delete[] this->src;
-                this->src = nullptr;
-                
-               
+                this->src = nullptr;     
             }
             
             CGRect rect = CGRectMake(0,0,960,540);
             
             this->win = [[NSWindow alloc] initWithContentRect:rect styleMask:1|1<<2 backing:NSBackingStoreBuffered defer:NO];
             this->view = [[MetalView alloc] initWithFrame:CGRectMake(0,0,WIDTH,HEIGHT) :{@"map.metallib"}];
-            [this->view setFrame:rect];
+            [this->view resize:rect];
             [this->view mode:0];
             [[this->win contentView] addSubview:this->view];
             
