@@ -1,18 +1,21 @@
 #import "MetalView.h"
 
 namespace Plane {
-    static const float vertexData[6][4] = {
+    
+    static const float vertices[4][4] = {
         { -1.f,-1.f, 0.f, 1.f },
-        {  1.f,-1.f, 0.f, 1.f },
-        { -1.f, 1.f, 0.f, 1.f },
         {  1.f,-1.f, 0.f, 1.f },
         { -1.f, 1.f, 0.f, 1.f },
         {  1.f, 1.f, 0.f, 1.f }
     };
-    static const float textureCoordinateData[6][2] = {
+    
+    static const unsigned short indices[6] = {
+        0,1,2,
+        1,2,3
+    };
+    
+    static const float texcoord[4][2] = {
         { 0.f, 0.f },
-        { 1.f, 0.f },
-        { 0.f, 1.f },
         { 1.f, 0.f },
         { 0.f, 1.f },
         { 1.f, 1.f }
@@ -38,7 +41,8 @@ namespace Plane {
     id<MTLTexture> _texture;
     id<MTLTexture> _map;
         
-    id<MTLBuffer> _vertexBuffer;
+    id<MTLBuffer> _verticesBuffer;
+    id<MTLBuffer> _indicesBuffer;
     id<MTLBuffer> _texcoordBuffer;
     
     std::vector<id<MTLLibrary>> _library;
@@ -212,10 +216,13 @@ namespace Plane {
     _map = [_device newTextureWithDescriptor:texDesc];
     if(!_map)  return true;
     
-    _vertexBuffer = [_device newBufferWithBytes:Plane::vertexData length:6*sizeof(float)*4 options:MTLResourceOptionCPUCacheModeDefault];
-    if(!_vertexBuffer) return true;
+    _verticesBuffer = [_device newBufferWithBytes:Plane::vertices length:4*sizeof(float)*4 options:MTLResourceOptionCPUCacheModeDefault];
+    if(!_verticesBuffer) return true;
     
-    _texcoordBuffer = [_device newBufferWithBytes:Plane::textureCoordinateData length:6*sizeof(float)*2 options:MTLResourceOptionCPUCacheModeDefault];
+    _indicesBuffer = [_device newBufferWithBytes:Plane::indices length:6*sizeof(short) options:MTLResourceOptionCPUCacheModeDefault];
+    if(!_indicesBuffer) return true;
+    
+    _texcoordBuffer = [_device newBufferWithBytes:Plane::texcoord length:4*sizeof(float)*2 options:MTLResourceOptionCPUCacheModeDefault];
     if(!_texcoordBuffer) return true;
     
     for(int k=0; k<_library.size(); k++) {
@@ -311,7 +318,7 @@ namespace Plane {
         [renderEncoder setFrontFacingWinding:MTLWindingCounterClockwise];
         [renderEncoder setRenderPipelineState:_renderPipelineState[mode]];
         
-        [renderEncoder setVertexBuffer:_vertexBuffer offset:0 atIndex:0];
+        [renderEncoder setVertexBuffer:_verticesBuffer offset:0 atIndex:0];
         [renderEncoder setVertexBuffer:_texcoordBuffer offset:0 atIndex:1];
 
         [renderEncoder useResource:_timeBuffer usage:MTLResourceUsageRead];
@@ -322,7 +329,8 @@ namespace Plane {
 
         [renderEncoder setFragmentBuffer:_argumentEncoderBuffer[mode] offset:0 atIndex:0];
 
-        [renderEncoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6 instanceCount:1];
+        [renderEncoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexCount:6 indexType:MTLIndexTypeUInt16 indexBuffer:_indicesBuffer indexBufferOffset:0];
+            
         [renderEncoder endEncoding];
         [commandBuffer presentDrawable:_metalDrawable];
         
