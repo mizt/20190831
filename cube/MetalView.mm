@@ -7,10 +7,6 @@ using namespace simd;
 
 static const NSUInteger kNumberOfBoxes = 9;
 
-static const float kFOVY    = 60.0f;
-static const float3 kEye    = {0.0f, 0.0f, 10.0f};
-static const float3 kCenter = {0.0f, 0.0f, 0.0f};
-static const float3 kUp     = {0.0f, 1.0f, 0.0f};
 
 static const float kWidth  = 1.f;
 static const float kHeight = 1.f;
@@ -89,8 +85,6 @@ static const float kCubeVertexData[] = {
     id<MTLBuffer> _dynamicConstantBuffer;
     id<MTLBuffer> _cubeVertexBuffer;
     
-    float4x4 _projectionMatrix;
-    float4x4 _viewMatrix;
     float _rotation;
         
     long _maxBufferBytesPerFrame;
@@ -126,10 +120,6 @@ static const float kCubeVertexData[] = {
     
     _sizeOfConstantT = sizeof(constants_t);
     _maxBufferBytesPerFrame = _sizeOfConstantT*kNumberOfBoxes;
-    
-    float aspect = fabs(_frame.size.width/_frame.size.height);
-    _projectionMatrix = perspective_fov(kFOVY,aspect,0.1f,100.0f);
-    _viewMatrix = lookAt(kEye,kCenter,kUp);
     
     for(int k=0; k<_library.size(); k++) {
         
@@ -223,7 +213,6 @@ static const float kCubeVertexData[] = {
     _commandQueue = [_device newCommandQueue];
     if(!_commandQueue) return true;
     
-    
     NSError *error = nil;
     
     for(int k=0; k<shaders.size(); k++) {
@@ -308,9 +297,8 @@ static const float kCubeVertexData[] = {
         
         constants_t *constant_buffer = (constants_t *)[_dynamicConstantBuffer contents];
         for(int i=0; i<kNumberOfBoxes; i++) {
-            simd::float4x4 modelViewMatrix = _viewMatrix * (AAPL::translate(i-4,0.f,0.f)*AAPL::rotate(_rotation,0.f,0.f,1.f)*AAPL::rotate(_rotation,1.f,0.f,0.f)*AAPL::rotate(_rotation,0.f,1.f,0.f)*AAPL::scale(i*0.1,i*0.1,i*0.1));
-            constant_buffer[i].normal_matrix = inverse(transpose(modelViewMatrix));
-            constant_buffer[i].modelview_projection_matrix = _projectionMatrix * modelViewMatrix;
+            
+            constant_buffer[i].prs_matrix = (AAPL::translate(i-4,0.f,0.f)*AAPL::rotate(_rotation,0.f,0.f,1.f)*AAPL::rotate(_rotation,1.f,0.f,0.f)*AAPL::rotate(_rotation,0.f,1.f,0.f)*AAPL::scale(i*0.1,i*0.1,i*0.1));
         }
                         
         MTLRenderPassColorAttachmentDescriptor *colorAttachment = _renderPassDescriptor.colorAttachments[0];
