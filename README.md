@@ -24,6 +24,10 @@ How to build ./Metal/Metal
 #### Linking libjpeg-turbo
 
     -I../libs/libjpeg-turbo -L../libs/libjpeg-turbo -lturbojpeg
+    
+#### Using CodeRunner
+	
+	-cr-noautoinclude
 
 ### See also
 
