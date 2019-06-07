@@ -29,6 +29,10 @@ How to build ./Metal/Metal
 	
 	-cr-noautoinclude
 
+### Live
+
+[live on Fri 19 Apr. 2019](https://t.co/Ik6pTKvX46)  
+
 ### See also
 
 [rdm-jpg](https://github.com/mizt/rdm-jpg) Extra JPEG File Format.   
