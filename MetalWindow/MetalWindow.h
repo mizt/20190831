@@ -1,17 +1,26 @@
+#import "MetalLayer.h"
+#import "TextureMetalLayer.h"
+
 class MetalWindow {
 	
 	private:
 	
 		NSWindow  *_win;
-		MetalView *_view;
+		NSView *_view;
+		TextureMetalLayer *_layer;
+		
+		NSRect rect;
 	
 	public:
 	
-		MetalView *view() { return this->_view; }
+		TextureMetalLayer *layer() { return this->_layer; }
 	
 		void resize() {
+			
+			[this->_win setFrame:WindowUtils::$()->screenRect() display:YES];
 			[this->_view setFrame:WindowUtils::$()->screenRect()];
-			[this->_win  setFrame:WindowUtils::$()->screenRect() display:NO];
+			this->_layer->resize(WindowUtils::$()->screenRect());
+						
 		}
 	
 		void appear() {
@@ -19,15 +28,29 @@ class MetalWindow {
             [this->_win makeKeyAndOrderFront:nil];
         }
 
-		MetalWindow(std::vector<NSString *>shaders, int zindex=kCGDesktopWindowLevel) {
+		MetalWindow() { 
+			
+			this->rect = CGRectMake(0,0,WindowUtils::$()->width,WindowUtils::$()->height);
+			
 			this->_win = [[NSWindow alloc] initWithContentRect:WindowUtils::$()->screenRect() styleMask:0 backing:NSBackingStoreBuffered defer:NO];
-			this->_view = [[MetalView alloc] initWithFrame:WindowUtils::$()->baseRect() :shaders];
-			[this->_win setBackgroundColor:[NSColor clearColor]];
-			[this->_win setOpaque:NO];
-			[this->_win setHasShadow:NO];
-			[this->_win setIgnoresMouseEvents:YES];
-			[this->_win setLevel:zindex];
-			[[this->_win contentView] addSubview:this->_view];
+			this->_view = [[NSView alloc] initWithFrame:WindowUtils::$()->screenRect()];
+			
+			 this->_layer = new TextureMetalLayer();
+			if(this->_layer->init(this->rect.size.width,this->rect.size.height,{@"default.metallib"})) {
+								
+				this->_layer->resize(WindowUtils::$()->screenRect());
+				[this->_view setWantsLayer:YES];
+				this->_view.layer = this->_layer->layer();
+				
+				[this->_win setBackgroundColor:[NSColor clearColor]];
+				[this->_win setOpaque:NO];
+				[this->_win setHasShadow:NO];
+				[this->_win setIgnoresMouseEvents:YES];
+				[this->_win setLevel:kCGDesktopWindowLevel];
+				
+				[[this->_win contentView] addSubview:this->_view];
+
+			}
 		}
 	
 		~MetalWindow() {
