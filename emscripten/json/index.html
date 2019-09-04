@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>audio</title>
+	<title>json</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
 	<style> 
@@ -17,9 +17,14 @@ var params =  JSON.stringify(
 	}
 );
 
-var json = _malloc(params.length+1);
-stringToUTF8(params,json,params.length+1); 
-Module.cwrap("setup","void",["number"])(json);
+var _json = _malloc(params.length+1);
+
+console.log(_json);
+
+stringToUTF8(params,_json,params.length+1); 
+Module.cwrap("setup","void",["number"])(_json);
+
+_free(_json);
 
 var _key = _malloc(1024);
 var _get = Module.cwrap("get","number",["number"]);
@@ -38,6 +43,9 @@ var setValue = function(key,value) {
 console.log(getValue("test"));
 setValue("test",100);
 console.log(getValue("test"));
+
+_free(_key);
+
 
 </script>
 </body>
