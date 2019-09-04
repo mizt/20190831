@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>audio</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+	<style> 
+		div#button {
+			font-family:Helvetica,sans-serif;
+			margin:-36px 0 0 -64px;
+			padding:0;
+			position:absolute;
+			top:50%; left:50%;
+			font-size:18px;
+			width:128px;
+			height:64px;
+			line-height:64px;
+			color:#FFF;
+			letter-spacing:0.08em;
+			background-color:#F55566;
+			border:none;
+			text-align:center;
+			-webkit-user-select:none;
+			cursor:pointer;
+			border-radius:4px;
+			opacity:0.0;
+			-webkit-transition: opacity 0.25s ease-in; 
+			-moz-transition: opacity 0.25s ease-in; 
+			-o-transition: opacity 0.25s ease-in; 
+			transition: opacity 0.25s ease-in;
+		}
+	</style>
+	<script src="libs.js"></script>
+</head>
+<body>
+<script>
+var play = false;
+
+var ctx = new (window.AudioContext||window.webkitAudioContext)()
+var BUFFER_SIZE = (1<<11);
+var L = new Float32Array(Module.HEAPF32.buffer,Module._malloc(BUFFER_SIZE<<2),BUFFER_SIZE);
+var R = new Float32Array(Module.HEAPF32.buffer,Module._malloc(BUFFER_SIZE<<2),BUFFER_SIZE);
+Module.cwrap("setup","void",["number"])(ctx.sampleRate);
+var next = Module.cwrap("next","void",["number","number","number"]);
+var onSampleData = function(e) {
+	if(play==1) next(L.byteOffset,R.byteOffset,BUFFER_SIZE);
+	else for(var k=0; k<BUFFER_SIZE; k++) L[k]=R[k]=0;
+	e.outputBuffer.getChannelData(0).set(L);
+	e.outputBuffer.getChannelData(1).set(R);
+}
+var scr = ctx.createScriptProcessor(BUFFER_SIZE);
+scr.onaudioprocess = onSampleData;
+scr.connect(ctx.destination);
+var osc = ctx.createOscillator();
+osc.connect(scr);
+
+var init = false;
+var button = document.createElement("div");
+button.textContent = "play";
+button.id = "button";
+document.body.appendChild(button);
+button.onclick = function(e) { 
+	if(play) {
+		button.innerHTML = "paly";	
+		button.style.backgroundColor = "#F55566";
+	}
+	else {
+		button.innerHTML = "stop";	
+		button.style.backgroundColor = "#999";
+	}	
+	play = !play;
+	if(!init) {
+		init = !init;
+		osc.start(0);
+	}
+}
+button.style.borderBottom = "2px #CCC outset";
+button.onmouseover = function(e) {
+	button.style.borderBottom = "1px #CCC outset";
+	button.style.marginTop = "-35px";
+}
+button.onmouseout = function(e) {
+	button.style.borderBottom = "2px #CCC outset";
+	button.style.marginTop = "-36px";
+}
+setTimeout(function() {
+	button.style.opacity = 1;
+},600);
+</script>
+</body>
+</html>
