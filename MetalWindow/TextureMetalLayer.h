@@ -1,18 +1,24 @@
-#import "Plane.h"
+// #import "Plane.h"
 
 class TextureMetalLayer : public MetalLayer {
 	
 	private:
 		
-		id<MTLTexture> _texture;
+		int _num = 1;
+		std::vector<id<MTLTexture>> _texture;
 		id<MTLBuffer> _texcoordBuffer;
 
 		std::vector<id<MTLBuffer>> _argumentEncoderBuffer;
 
 	public:
 		
-		id<MTLTexture> texture() { 
-			return this->_texture; 
+		id<MTLTexture> texture(int index=0) { 
+			index = (index>=_num)?0:index;
+			return this->_texture[index]; 
+		}
+		
+		void texture(id<MTLTexture> texture,int index=0) { 
+			this->_texture[index] = texture; 
 		}
 		
 		bool setup() {
@@ -20,9 +26,12 @@ class TextureMetalLayer : public MetalLayer {
 			MTLTextureDescriptor *texDesc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:this->_width height:this->_height mipmapped:NO];
 			if(!texDesc) return false;
 			
-			this->_texture = [_device newTextureWithDescriptor:texDesc];
-			if(!this->_texture) return false;
 			
+			for(int n=0; n<this->_num; n++) {
+				this->_texture.push_back([_device newTextureWithDescriptor:texDesc]);
+				if(!this->_texture[n]) return false;
+			}
+						
 			if(MetalLayer::setup()==false) return false;
 			
 			this->_texcoordBuffer = [this->_device newBufferWithBytes:Plane::texcoord length:Plane::TEXCOORD_SIZE*sizeof(float)*2 options:MTLResourceOptionCPUCacheModeDefault];
@@ -32,9 +41,13 @@ class TextureMetalLayer : public MetalLayer {
 				this->_argumentEncoderBuffer.push_back([this->_device newBufferWithLength:sizeof(float)*[this->_argumentEncoder[k] encodedLength] options:MTLResourceOptionCPUCacheModeDefault]);
 
 				[this->_argumentEncoder[k] setArgumentBuffer:this->_argumentEncoderBuffer[k] offset:0];
-				[this->_argumentEncoder[k] setTexture:this->_texture atIndex:0];
+				
+				for(int n=0; n<this->_texture.size(); n++) {
+					[this->_argumentEncoder[k] setTexture:this->_texture[n] atIndex:n];
+				}
+				
 			}
-						
+			
 			return true;
 		} 
 		
@@ -53,7 +66,10 @@ class TextureMetalLayer : public MetalLayer {
 			[renderEncoder setVertexBuffer:this->_verticesBuffer offset:0 atIndex:0];
 			[renderEncoder setVertexBuffer:this->_texcoordBuffer offset:0 atIndex:1];
 			
-			[renderEncoder useResource:this->_texture usage:MTLResourceUsageSample];
+			for(int n=0; n<this->_num; n++) {
+				[renderEncoder useResource:this->_texture[n] usage:MTLResourceUsageSample];
+			}
+			
 			[renderEncoder setFragmentBuffer:this->_argumentEncoderBuffer[mode] offset:0 atIndex:0];
 			
 			[renderEncoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle indexCount:Plane::INDICES_SIZE indexType:MTLIndexTypeUInt16 indexBuffer:this->_indicesBuffer indexBufferOffset:0];
@@ -64,7 +80,9 @@ class TextureMetalLayer : public MetalLayer {
 			return commandBuffer;
 		}
 		
-		TextureMetalLayer() {	
+		TextureMetalLayer(int num=1) {
+			if(num<=1) num = 1;
+			this->_num = num;
 		}
 		
 		~TextureMetalLayer() {
