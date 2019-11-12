@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
         if(err==nil) {
             NSData *jsonData = [json dataUsingEncoding:NSUnicodeStringEncoding];
             err = nil;
-            NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:jsonData options:NSJSONReadingAllowFragments error:&err];
+            NSMutableDictionary *dict = [NSJSONSerialization JSONObjectWithData:jsonData options:NSJSONReadingMutableContainers error:&err];
             if(err==nil) {
                 int ch = 3;
                 if([[dict[@"background"] className] compare:@"__NSArrayI"]==NSOrderedSame) {
@@ -24,7 +24,25 @@ int main(int argc, char *argv[]) {
                         }
                         NSLog(@"0x%X",color);
                     }
-                }               
+                }  
+                
+                //NSLog(@"%@",[dict[@"timestamp"] className]);
+                
+                if([[dict[@"timestamp"] className] compare:@"__NSCFNumber"]==NSOrderedSame) {
+                    NSLog(@"%f",[dict[@"timestamp"] doubleValue]);
+                    
+                    NSNumber *val = [NSNumber numberWithDouble:CFAbsoluteTimeGetCurrent()];
+                    NSLog(@"%@",val);
+                    
+                    [dict setValue:val forKey:@"timestamp"];
+                    
+                    NSError *error = nil;
+                    NSData *data = [NSJSONSerialization dataWithJSONObject:dict options:2 error:&error];
+                    if(error==nil) {
+                        NSString *jsonstr=[[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding];
+                        [jsonstr writeToFile:@"./color.json" atomically:YES encoding:NSUTF8StringEncoding error:nil];
+                    }
+                }
             }
         }
     }
