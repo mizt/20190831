@@ -9,7 +9,23 @@
 #import <MetalKit/MetalKit.h>
 #import "vector"
 #import "MetalWindow.h"
-#include "jpeglib.h"
+
+//#define LIBJPEG
+
+#ifdef LIBJPEG
+    #include "jpeglib.h"
+#else
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wcomma"
+    #pragma clang diagnostic ignored "-Wunused-function"
+    #define STB_IMAGE_WRITE_IMPLEMENTATION
+    #define STB_IMAGE_IMPLEMENTATION
+    #define STBI_ONLY_JPEG
+    namespace stb_image {
+        #import "../common/stb_image.h"
+    }
+    #pragma clang diagnostic pop
+#endif
 
 class App {
     
@@ -24,6 +40,8 @@ class App {
         int width  = 1280;
         int height = 720;
         
+#ifdef LIBJPEG
+
         void decode(FILE *file,unsigned char *dst,int w,int h,int ch) {
             
             struct jpeg_error_mgr err;
@@ -56,6 +74,8 @@ class App {
             decode(file,dst,w,h,ch);
             fclose(file);
         }
+        
+#endif
 
     public:
         
@@ -65,12 +85,21 @@ class App {
             
             this->width  = this->win->width();
             this->height = this->win->height();
+                            
+#ifdef LIBJPEG
 
             this->texture = new unsigned int[width*height];
             for(unsigned int k=0; k<width*height; k++) this->texture[k] = 0xFFFF0000;
-                            
             this->load([NSString stringWithFormat:@"%@/%@",[[NSBundle mainBundle] resourcePath],@"test.jpg"],(unsigned char *)this->texture,this->width,this->height,4);
-                         
+#else
+                
+            int w;
+            int h;
+            int bpp;
+            this->texture = (unsigned int *)stb_image::stbi_load("./test.jpg",&w,&h,&bpp,4);
+                
+#endif
+            
             this->timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER,0,0,dispatch_queue_create("ENTER_FRAME",0));
             dispatch_source_set_timer(this->timer,dispatch_time(0,0),(1.0/30)*1000000000,0);
             dispatch_source_set_event_handler(this->timer,^{
@@ -95,7 +124,9 @@ class App {
             if(this->timer) dispatch_resume(this->timer);
         }
         
-        ~App() {            
+        ~App() {
+            
+            delete[] this->texture;    
             
             if(this->timer){
                 dispatch_source_cancel(this->timer);
