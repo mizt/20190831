@@ -1,7 +1,7 @@
 #import <Cocoa/Cocoa.h>
 #import <MetalKit/MetalKit.h>
-
 #import "vector"
+#import "Plane.h"
 #import "WindowUtils.h"
 #import "MetalWindow.h"
 

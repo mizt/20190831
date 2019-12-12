@@ -3,7 +3,6 @@ class WindowUtils {
     private:
     
         unsigned int  *_desktop = nullptr;
-        unsigned char *_desktopRGB = nullptr;
     
         int _number = -1;
         int _layer = kCGDesktopWindowLevel;
@@ -36,7 +35,6 @@ class WindowUtils {
         WindowUtils() {
                         
             this->_desktop = new unsigned int[width*height];
-            this->_desktopRGB = new unsigned char[width*height*3];
             
             for (unsigned int k=0; k<width*height; k++) this->_desktop[k] = 0x0;
             
@@ -62,7 +60,6 @@ class WindowUtils {
         static const int height = 1080;
     
         unsigned int *desktop() { return _desktop; }
-        unsigned char *desktopRGB() { return _desktopRGB; }
     
         int number() { return _number; }
         int layer() { return _layer; }
