@@ -62,8 +62,10 @@ class App {
                         [device newTextureWithDescriptor:descriptor],
                         [device newTextureWithDescriptor:descriptor]
                     };
-                        
-                    [texture[0] replaceRegion:MTLRegionMake2D(0,0,width,height) mipmapLevel:0 withBytes:data bytesPerRow:width<<4];
+                    
+                    NSLog(@"%@",);
+                    
+                    [texture[0] replaceRegion:MTLRegionMake2D(0,0,width,height) mipmapLevel:0 withBytes:data bytesPerRow:width<<2];
                         
                     id<MTLCommandBuffer> commandBuffer = queue.commandBuffer;
                     id<MTLComputeCommandEncoder> encoder = commandBuffer.computeCommandEncoder;
@@ -79,7 +81,7 @@ class App {
                     [commandBuffer commit];
                     [commandBuffer waitUntilCompleted];
                     
-                    [texture[1] getBytes:data bytesPerRow:width<<4 fromRegion:MTLRegionMake2D(0,0,width,height) mipmapLevel:0];
+                    [texture[1] getBytes:data bytesPerRow:width<<2 fromRegion:MTLRegionMake2D(0,0,width,height) mipmapLevel:0];
                                             
                     double current = CFAbsoluteTimeGetCurrent();
                     NSLog(@"%f",current-then);
