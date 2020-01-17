@@ -9,7 +9,7 @@ class App {
 #ifdef ENTER_FRAME
         dispatch_source_t timer;
 #endif
-        
+                
     public:
         
         App() {
@@ -20,8 +20,10 @@ class App {
             dispatch_source_set_event_handler(this->timer,^{
 #endif
 
-                int width = 512;
-                int height = 512;
+                double then = CFAbsoluteTimeGetCurrent();
+
+                int width  = 1920;
+                int height = 1080;
                 
                 NSString *path = @"./default.metallib";
                     
@@ -29,7 +31,7 @@ class App {
                     
                 if([fileManager fileExistsAtPath:path]) {
                                         
-                    float *data = new float[width*height*4];
+                    unsigned int *data = new unsigned int[width*height];
 
                      id<MTLDevice> device = MTLCreateSystemDefaultDevice();
                         __block id<MTLLibrary> library;
@@ -53,7 +55,7 @@ class App {
                     id<MTLComputePipelineState> pipelineState = [device newComputePipelineStateWithFunction:function error:nil];                        
                     id<MTLCommandQueue> queue = [device newCommandQueue];
                         
-                    MTLTextureDescriptor *descriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA32Float width:width height:height mipmapped:NO];
+                    MTLTextureDescriptor *descriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm width:width height:height mipmapped:NO];
                     descriptor.usage = MTLTextureUsageShaderWrite|MTLTextureUsageShaderRead;
                         
                     id<MTLTexture> texture[2] = {
@@ -69,21 +71,27 @@ class App {
                     [encoder setTexture:texture[0] atIndex:0];
                     [encoder setTexture:texture[1] atIndex:1];
                         
-                    MTLSize threadGroupSize = MTLSizeMake(16,8,1);
+                    MTLSize threadGroupSize = MTLSizeMake(32,32,1);
                     MTLSize threadGroups = MTLSizeMake(std::ceil((float)(texture[1].width/threadGroupSize.width)),std::ceil((float)(texture[1].height/threadGroupSize.height)),1);
                         
                     [encoder dispatchThreadgroups:threadGroups threadsPerThreadgroup:threadGroupSize];
                     [encoder endEncoding];
                     [commandBuffer commit];
                     [commandBuffer waitUntilCompleted];
-                        
+                    
                     [texture[1] getBytes:data bytesPerRow:width<<4 fromRegion:MTLRegionMake2D(0,0,width,height) mipmapLevel:0];
+                                            
+                    double current = CFAbsoluteTimeGetCurrent();
+                    NSLog(@"%f",current-then);
+                    
                         
                     texture[0] = nil;
                     texture[1] = nil;
                     
                     
                     delete[] data;
+                   
+                    
                     
                 }
                 
